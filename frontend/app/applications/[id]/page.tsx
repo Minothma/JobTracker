@@ -60,6 +60,8 @@ export default function ApplicationDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           <InterviewSection
             applicationId={application.id}
+            companyName={application.company_name}
+            roleTitle={application.role_title}
             interviews={application.interviews || []}
             onInterviewsChange={(updatedInterviews) =>
               setApplication((prev) => (prev ? { ...prev, interviews: updatedInterviews } : prev))

@@ -8,16 +8,21 @@ import { Modal } from '../../../../components/ui/Modal';
 import { Input, Select } from '../../../../components/ui/Input';
 import { apiFetch } from '../../../../lib/api-client';
 import { useToast } from '../../../../components/ui/Toast';
-import { Video, Plus, Calendar, Trash2 } from 'lucide-react';
+import { generateGoogleCalendarUrl, downloadIcsFile } from '../../../../lib/calendar';
+import { Video, Plus, Calendar, Trash2, ExternalLink, Download } from 'lucide-react';
 
 interface InterviewSectionProps {
   applicationId: string;
+  companyName?: string;
+  roleTitle?: string;
   interviews: Interview[];
   onInterviewsChange: (updated: Interview[]) => void;
 }
 
 export const InterviewSection: React.FC<InterviewSectionProps> = ({
   applicationId,
+  companyName = 'Company',
+  roleTitle = 'Position',
   interviews,
   onInterviewsChange,
 }) => {
@@ -130,51 +135,97 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
               minute: '2-digit',
             });
 
+            const calendarEvent = {
+              title: `[Interview] ${round.round_type} - ${companyName} (${roleTitle})`,
+              description: `Interview round: ${round.round_type}\nCompany: ${companyName}\nRole: ${roleTitle}\n\nPrep Notes:\n${round.notes || 'None'}\n\nTracked in JobTracker.`,
+              location: `${companyName} Video / Online`,
+              startTime: round.scheduled_at,
+              durationMinutes: 60,
+            };
+
+            const gcalUrl = generateGoogleCalendarUrl(calendarEvent);
+
             return (
               <div
                 key={round.id}
-                className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col sm:flex-row sm:items-start justify-between gap-3"
+                className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col gap-3"
               >
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
-                      {round.round_type}
-                    </h3>
-                    <Badge status={round.outcome || 'PENDING'} />
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div className="space-y-1.5 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                        {round.round_type}
+                      </h3>
+                      <Badge status={round.outcome || 'PENDING'} />
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{formattedDate}</span>
+                    </div>
+
+                    {round.notes && (
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 bg-white dark:bg-slate-900/60 p-2.5 rounded border border-slate-200/60 dark:border-slate-800 whitespace-pre-wrap">
+                        {round.notes}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{formattedDate}</span>
-                  </div>
+                  <div className="flex items-center gap-2 self-end sm:self-start">
+                    <select
+                      value={round.outcome || 'PENDING'}
+                      onChange={(e) => handleOutcomeChange(round.id, e.target.value)}
+                      className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-slate-700 dark:text-slate-200 focus:outline-none"
+                    >
+                      {outcomeOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
 
-                  {round.notes && (
-                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 bg-white dark:bg-slate-900/60 p-2.5 rounded border border-slate-200/60 dark:border-slate-800 whitespace-pre-wrap">
-                      {round.notes}
-                    </p>
-                  )}
+                    <button
+                      onClick={() => handleDeleteRound(round.id)}
+                      className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 rounded"
+                      title="Delete round"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 self-end sm:self-start">
-                  <select
-                    value={round.outcome || 'PENDING'}
-                    onChange={(e) => handleOutcomeChange(round.id, e.target.value)}
-                    className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-slate-700 dark:text-slate-200 focus:outline-none"
-                  >
-                    {outcomeOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                {/* Calendar Sync Action Toolbar */}
+                <div className="pt-2.5 border-t border-slate-200/60 dark:border-slate-800/80 flex items-center justify-between flex-wrap gap-2 text-xs">
+                  <span className="text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5" />
+                    Calendar Sync:
+                  </span>
 
-                  <button
-                    onClick={() => handleDeleteRound(round.id)}
-                    className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 rounded"
-                    title="Delete round"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={gcalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/50 border border-slate-200 dark:border-slate-700 text-sky-600 dark:text-sky-400 font-medium transition-colors"
+                      title="Add to Google Calendar"
+                    >
+                      <span>Google Calendar</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        downloadIcsFile(calendarEvent);
+                        showToast('Downloaded .ics calendar invite', 'success');
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium transition-colors"
+                      title="Download .ics file for Outlook, Apple Calendar"
+                    >
+                      <Download className="w-3 h-3" />
+                      <span>.ICS file</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );
