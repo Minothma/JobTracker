@@ -4,9 +4,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { apiFetch } from '../../lib/api-client';
 import { Application } from '../../lib/types';
 import { KanbanBoard } from './components/KanbanBoard';
+import { ApplicationsTable } from './components/ApplicationsTable';
 import { NewApplicationModal } from './components/NewApplicationModal';
 import { Button } from '../../components/ui/Button';
-import { Plus, Search, RefreshCw, Briefcase, Video, Award } from 'lucide-react';
+import { Plus, Search, RefreshCw, Briefcase, Video, Award, LayoutGrid, List } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 
 export default function BoardPage() {
@@ -14,6 +15,7 @@ export default function BoardPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [isNewModalOpen, setIsNewModalOpen] = useState<boolean>(false);
 
   const fetchApplications = async () => {
@@ -70,6 +72,34 @@ export default function BoardPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* View Mode Toggle */}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                viewMode === 'kanban'
+                  ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+              title="Kanban Board View"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Kanban</span>
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                viewMode === 'table'
+                  ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+              title="Table / Spreadsheet List View"
+            >
+              <List className="w-3.5 h-3.5" />
+              <span>Table</span>
+            </button>
+          </div>
+
           <Button
             variant="outline"
             size="sm"
@@ -154,7 +184,7 @@ export default function BoardPage() {
         )}
       </div>
 
-      {/* Kanban Board Container */}
+      {/* Content: Kanban Board or Table View */}
       {loading && applications.length === 0 ? (
         <div className="flex items-center justify-center py-20">
           <div className="flex flex-col items-center gap-2 text-slate-400">
@@ -162,8 +192,13 @@ export default function BoardPage() {
             <p className="text-sm">Loading applications...</p>
           </div>
         </div>
-      ) : (
+      ) : viewMode === 'kanban' ? (
         <KanbanBoard
+          applications={filteredApplications}
+          onApplicationsChange={setApplications}
+        />
+      ) : (
+        <ApplicationsTable
           applications={filteredApplications}
           onApplicationsChange={setApplications}
         />
