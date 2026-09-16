@@ -112,7 +112,7 @@ Requirements:
       isOpen={isOpen}
       onClose={onClose}
       title="✨ AI ATS Resume & Job Description Matcher"
-      maxWidth="xl"
+      maxWidth="2xl"
     >
       <div className="space-y-6">
         {/* Top Description Banner */}
