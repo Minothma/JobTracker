@@ -8,7 +8,8 @@ import { Modal } from '../../../../components/ui/Modal';
 import { Select } from '../../../../components/ui/Input';
 import { apiFetch } from '../../../../lib/api-client';
 import { useToast } from '../../../../components/ui/Toast';
-import { FileText, Download, Link2, ExternalLink } from 'lucide-react';
+import { AiResumeMatcherModal } from '../../../../components/AiResumeMatcherModal';
+import { FileText, Download, Link2, ExternalLink, Sparkles } from 'lucide-react';
 
 interface AttachedResumeSectionProps {
   application: Application;
@@ -21,6 +22,7 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
 }) => {
   const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState(application.resume_id || '');
   const [isSaving, setIsSaving] = useState(false);
@@ -75,54 +77,77 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
 
         <Button variant="outline" size="sm" onClick={() => setIsModalOpen(true)}>
           <Link2 className="w-3.5 h-3.5 mr-1" />
-          {application.resumes ? 'Change Resume' : 'Attach Resume'}
+          {application.resumes ? 'Change' : 'Attach'}
         </Button>
       </div>
 
       {application.resumes ? (
-        <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
-              <FileText className="w-5 h-5" />
+        <div className="space-y-3">
+          <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                  {application.resumes.version_label}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {application.resumes.original_filename}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
-                {application.resumes.version_label}
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {application.resumes.original_filename}
-              </p>
+
+            <div className="flex items-center gap-2">
+              {application.resumes.download_url && (
+                <a
+                  href={application.resumes.download_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>View</span>
+                </a>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {application.resumes.download_url && (
-              <a
-                href={application.resumes.download_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download / View</span>
-              </a>
-            )}
-          </div>
+          {/* AI ATS Match Button */}
+          <button
+            type="button"
+            onClick={() => setIsAiModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-violet-500/10 hover:from-sky-500/20 hover:via-indigo-500/20 hover:to-violet-500/20 text-indigo-700 dark:text-indigo-300 font-semibold text-xs transition-all shadow-2xs group"
+          >
+            <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 group-hover:rotate-12 transition-transform" />
+            <span>Check AI ATS Match & Keyword Gaps</span>
+          </button>
         </div>
       ) : (
-        <div className="py-6 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-400">
-          No resume version attached to this application.{' '}
+        <div className="space-y-3">
+          <div className="py-6 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-400">
+            No resume version attached to this application.{' '}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="text-sky-600 dark:text-sky-400 hover:underline font-medium"
+            >
+              Attach one now
+            </button>
+            {' or '}
+            <Link href="/resumes" className="text-sky-600 dark:text-sky-400 hover:underline font-medium">
+              manage resumes
+            </Link>
+            .
+          </div>
+
           <button
-            onClick={() => setIsModalOpen(true)}
-            className="text-sky-600 dark:text-sky-400 hover:underline font-medium"
+            type="button"
+            onClick={() => setIsAiModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors"
           >
-            Attach one now
+            <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+            <span>Test AI Resume Matcher</span>
           </button>
-          {' or '}
-          <Link href="/resumes" className="text-sky-600 dark:text-sky-400 hover:underline font-medium">
-            manage your resumes
-          </Link>
-          .
         </div>
       )}
 
@@ -157,6 +182,16 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
           </div>
         </form>
       </Modal>
+
+      {/* AI Resume Matcher Modal */}
+      <AiResumeMatcherModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        companyName={application.company_name}
+        roleTitle={application.role_title}
+        initialResumeId={application.resume_id}
+        initialResumeName={application.resumes?.version_label}
+      />
     </div>
   );
 };

@@ -133,3 +133,14 @@ export interface NotificationCheckResult {
   alerts: StaleApplication[];
   dispatched_via: string;
 }
+
+export interface AiMatchResponse {
+  score: number;
+  verdict: 'STRONG_MATCH' | 'MODERATE_MATCH' | 'NEEDS_IMPROVEMENT';
+  matched_skills: string[];
+  missing_skills: string[];
+  recommendations: string[];
+  interview_focus_areas: string[];
+  summary: string;
+  analyzed_with: string;
+}
