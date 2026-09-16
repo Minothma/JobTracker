@@ -8,6 +8,7 @@ import { ApplicationHeader } from './components/ApplicationHeader';
 import { InterviewSection } from './components/InterviewSection';
 import { NotesSection } from './components/NotesSection';
 import { AttachedResumeSection } from './components/AttachedResumeSection';
+import { OfferPackageSection } from './components/OfferPackageSection';
 import { useToast } from '../../../components/ui/Toast';
 
 export default function ApplicationDetailPage() {
@@ -77,8 +78,10 @@ export default function ApplicationDetailPage() {
           />
         </div>
 
-        {/* Right Column (1/3): Attached Resume */}
+        {/* Right Column (1/3): Attached Resume & Offer Package */}
         <div className="space-y-6">
+          <OfferPackageSection application={application} />
+
           <AttachedResumeSection
             application={application}
             onUpdate={(updated) => setApplication((prev) => (prev ? { ...prev, ...updated } : updated))}

@@ -6,6 +6,7 @@ import { apiFetch } from '../../lib/api-client';
 import { AnalyticsData, Application } from '../../lib/types';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
+import { OfferComparisonMatrix } from './components/OfferComparisonMatrix';
 import { useToast } from '../../components/ui/Toast';
 import {
   BarChart3,
@@ -542,6 +543,9 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </div>
+
+      {/* Offer & Compensation Comparison Matrix */}
+      <OfferComparisonMatrix />
 
       {/* Monthly Velocity & Stale Applications Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
