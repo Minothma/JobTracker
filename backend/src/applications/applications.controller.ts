@@ -30,6 +30,11 @@ export class ApplicationsController {
     return this.applicationsService.findAll(userId, query);
   }
 
+  @Get('analytics')
+  async getAnalytics(@CurrentUser('id') userId: string) {
+    return this.applicationsService.getAnalytics(userId);
+  }
+
   @Get(':id')
   async findOne(
     @CurrentUser('id') userId: string,

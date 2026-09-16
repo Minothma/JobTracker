@@ -19,6 +19,8 @@ build/
 .next/
 out/
 cdk.out/
+*.tsbuildinfo
+**/*.tsbuildinfo
 
 # Logs
 npm-debug.log*

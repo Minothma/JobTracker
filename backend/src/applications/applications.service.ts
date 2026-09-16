@@ -169,4 +169,130 @@ export class ApplicationsService {
 
     return { message: 'Application deleted successfully' };
   }
+
+  async getAnalytics(userId: string) {
+    const applications = await this.prisma.applications.findMany({
+      where: { user_id: userId },
+      include: {
+        interviews: {
+          orderBy: { scheduled_at: 'asc' },
+        },
+      },
+      orderBy: { applied_date: 'asc' },
+    });
+
+    const totalApplications = applications.length;
+    const statusCounts: Record<string, number> = {
+      APPLIED: 0,
+      INTERVIEW: 0,
+      OFFER: 0,
+      REJECTED: 0,
+      WITHDRAWN: 0,
+    };
+
+    applications.forEach((app) => {
+      if (statusCounts[app.status] !== undefined) {
+        statusCounts[app.status]++;
+      }
+    });
+
+    const activeApplications = statusCounts.APPLIED + statusCounts.INTERVIEW;
+    const applicationsWithInterviews = applications.filter(
+      (app) => app.interviews.length > 0 || app.status === 'INTERVIEW' || app.status === 'OFFER',
+    ).length;
+    const totalOffers = statusCounts.OFFER;
+    const totalInterviewsCount = applications.reduce(
+      (acc, curr) => acc + curr.interviews.length,
+      0,
+    );
+
+    const appliedToInterviewRate = totalApplications > 0
+      ? Math.round((applicationsWithInterviews / totalApplications) * 100)
+      : 0;
+
+    const interviewToOfferRate = applicationsWithInterviews > 0
+      ? Math.round((totalOffers / applicationsWithInterviews) * 100)
+      : 0;
+
+    const overallOfferRate = totalApplications > 0
+      ? Math.round((totalOffers / totalApplications) * 100)
+      : 0;
+
+    let totalDaysToFirstInterview = 0;
+    let interviewedAppsCount = 0;
+
+    applications.forEach((app) => {
+      if (app.interviews && app.interviews.length > 0) {
+        const appliedTime = new Date(app.applied_date).getTime();
+        const firstInterviewTime = new Date(app.interviews[0].scheduled_at).getTime();
+        const diffDays = Math.max(0, Math.round((firstInterviewTime - appliedTime) / (1000 * 60 * 60 * 24)));
+        totalDaysToFirstInterview += diffDays;
+        interviewedAppsCount++;
+      }
+    });
+
+    const avgDaysToInterview = interviewedAppsCount > 0
+      ? Math.round(totalDaysToFirstInterview / interviewedAppsCount)
+      : 0;
+
+    const now = new Date();
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const staleApplications = applications
+      .filter((app) => {
+        const isApplied = app.status === 'APPLIED';
+        const appliedDate = new Date(app.applied_date);
+        const hasNoInterviews = app.interviews.length === 0;
+        return isApplied && hasNoInterviews && appliedDate < fourteenDaysAgo;
+      })
+      .map((app) => ({
+        id: app.id,
+        company_name: app.company_name,
+        role_title: app.role_title,
+        applied_date: app.applied_date,
+        days_waiting: Math.round((now.getTime() - new Date(app.applied_date).getTime()) / (1000 * 60 * 60 * 24)),
+      }));
+
+    const monthlyVelocityMap: { [key: string]: number } = {};
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const key = d.toLocaleString('en-US', { month: 'short' });
+      monthlyVelocityMap[key] = 0;
+    }
+
+    applications.forEach((app) => {
+      const appDate = new Date(app.applied_date);
+      const monthKey = appDate.toLocaleString('en-US', { month: 'short' });
+      if (monthlyVelocityMap[monthKey] !== undefined) {
+        monthlyVelocityMap[monthKey]++;
+      }
+    });
+
+    const monthlyVelocity = Object.entries(monthlyVelocityMap).map(([month, count]) => ({
+      month,
+      count,
+    }));
+
+    return {
+      overview: {
+        totalApplications,
+        activeApplications,
+        totalInterviewsCount,
+        applicationsWithInterviews,
+        totalOffers,
+        statusCounts,
+        appliedToInterviewRate,
+        interviewToOfferRate,
+        overallOfferRate,
+        avgDaysToInterview,
+      },
+      funnel: [
+        { stage: 'Applied', count: totalApplications, percentage: 100 },
+        { stage: 'Interview', count: applicationsWithInterviews, percentage: appliedToInterviewRate },
+        { stage: 'Offer', count: totalOffers, percentage: overallOfferRate },
+      ],
+      monthlyVelocity,
+      staleApplications,
+    };
+  }
 }

@@ -75,3 +75,61 @@ export interface AuthResponse {
   tokenType: string;
   expiresIn: string;
 }
+
+export interface FunnelStep {
+  stage: string;
+  count: number;
+  percentage: number;
+}
+
+export interface MonthlyVelocityPoint {
+  month: string;
+  count: number;
+}
+
+export interface StaleApplication {
+  id: string;
+  company_name: string;
+  role_title: string;
+  applied_date: string;
+  days_waiting: number;
+}
+
+export interface AnalyticsOverview {
+  totalApplications: number;
+  activeApplications: number;
+  totalInterviewsCount: number;
+  applicationsWithInterviews: number;
+  totalOffers: number;
+  statusCounts: {
+    APPLIED: number;
+    INTERVIEW: number;
+    OFFER: number;
+    REJECTED: number;
+    WITHDRAWN: number;
+    [key: string]: number;
+  };
+  appliedToInterviewRate: number;
+  interviewToOfferRate: number;
+  overallOfferRate: number;
+  avgDaysToInterview: number;
+}
+
+export interface AnalyticsData {
+  overview: AnalyticsOverview;
+  funnel: FunnelStep[];
+  monthlyVelocity: MonthlyVelocityPoint[];
+  staleApplications: StaleApplication[];
+}
+
+export interface NotificationAlertsResponse {
+  count: number;
+  alerts: StaleApplication[];
+}
+
+export interface NotificationCheckResult {
+  message: string;
+  stale_count: number;
+  alerts: StaleApplication[];
+  dispatched_via: string;
+}
