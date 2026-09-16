@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { Application, ApplicationStatus } from '../../../lib/types';
 import { ApplicationCard } from './ApplicationCard';
+import { isApplicationStarred, STARRED_CHANGED_EVENT } from '../../../lib/favorites';
 
 interface KanbanColumnProps {
   status: ApplicationStatus;
@@ -24,6 +25,27 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   title,
   applications,
 }) => {
+  const [starredChangeCounter, setStarredChangeCounter] = useState(0);
+
+  useEffect(() => {
+    const handleStarredChanged = () => {
+      setStarredChangeCounter((prev) => prev + 1);
+    };
+
+    window.addEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
+    return () => {
+      window.removeEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
+    };
+  }, []);
+
+  const sortedApplications = useMemo(() => {
+    return [...applications].sort((a, b) => {
+      const aStarred = isApplicationStarred(a.id) ? 1 : 0;
+      const bStarred = isApplicationStarred(b.id) ? 1 : 0;
+      return bStarred - aStarred; // Starred items first
+    });
+  }, [applications, starredChangeCounter]);
+
   const { setNodeRef, isOver } = useDroppable({
     id: status,
   });
@@ -50,8 +72,8 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
 
       {/* Cards container */}
       <div className="flex-1 flex flex-col gap-2.5 min-h-[160px] overflow-y-auto">
-        {applications.length > 0 ? (
-          applications.map((app) => <ApplicationCard key={app.id} application={app} />)
+        {sortedApplications.length > 0 ? (
+          sortedApplications.map((app) => <ApplicationCard key={app.id} application={app} />)
         ) : (
           <div className="h-full min-h-[120px] flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-400">
             Drop application here

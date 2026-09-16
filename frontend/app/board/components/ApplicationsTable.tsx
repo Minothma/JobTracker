@@ -25,14 +25,20 @@ import {
   Square,
   MinusSquare,
   X,
+  Star,
 } from 'lucide-react';
+import {
+  isApplicationStarred,
+  toggleStarredApplicationId,
+  STARRED_CHANGED_EVENT,
+} from '../../../lib/favorites';
 
 interface ApplicationsTableProps {
   applications: Application[];
   onApplicationsChange: (updated: Application[]) => void;
 }
 
-type SortField = 'company_name' | 'role_title' | 'status' | 'applied_date';
+type SortField = 'starred' | 'company_name' | 'role_title' | 'status' | 'applied_date';
 
 const STATUS_OPTIONS: { label: string; value: ApplicationStatus }[] = [
   { label: 'Applied', value: 'APPLIED' },
@@ -48,15 +54,29 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
 }) => {
   const { showToast } = useToast();
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('ALL');
-  const [sortField, setSortField] = useState<SortField>('applied_date');
+  const [sortField, setSortField] = useState<SortField>('starred');
   const [sortAsc, setSortAsc] = useState<boolean>(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkProcessing, setIsBulkProcessing] = useState<boolean>(false);
+  const [starredChangeCounter, setStarredChangeCounter] = useState<number>(0);
+
+  // Sync starred changes across components
+  React.useEffect(() => {
+    const handleStarredChanged = () => {
+      setStarredChangeCounter((prev) => prev + 1);
+    };
+
+    window.addEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
+    return () => {
+      window.removeEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
+    };
+  }, []);
 
   // Status Filter Counts
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {
       ALL: applications.length,
+      STARRED: 0,
       APPLIED: 0,
       INTERVIEW: 0,
       OFFER: 0,
@@ -67,19 +87,30 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
       if (counts[app.status] !== undefined) {
         counts[app.status]++;
       }
+      if (isApplicationStarred(app.id)) {
+        counts.STARRED++;
+      }
     });
     return counts;
-  }, [applications]);
+  }, [applications, starredChangeCounter]);
 
   // Filter & Sort Applications
   const processedApplications = useMemo(() => {
     let result = [...applications];
 
-    if (selectedStatusFilter !== 'ALL') {
+    if (selectedStatusFilter === 'STARRED') {
+      result = result.filter((app) => isApplicationStarred(app.id));
+    } else if (selectedStatusFilter !== 'ALL') {
       result = result.filter((app) => app.status === selectedStatusFilter);
     }
 
     result.sort((a, b) => {
+      if (sortField === 'starred') {
+        const aStar = isApplicationStarred(a.id) ? 1 : 0;
+        const bStar = isApplicationStarred(b.id) ? 1 : 0;
+        return sortAsc ? aStar - bStar : bStar - aStar;
+      }
+
       let aVal = a[sortField] || '';
       let bVal = b[sortField] || '';
 
@@ -99,7 +130,7 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
     });
 
     return result;
-  }, [applications, selectedStatusFilter, sortField, sortAsc]);
+  }, [applications, selectedStatusFilter, sortField, sortAsc, starredChangeCounter]);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -271,6 +302,28 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
           </span>
         </button>
 
+        {/* Starred Dream Jobs Filter Pill */}
+        <button
+          onClick={() => setSelectedStatusFilter('STARRED')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+            selectedStatusFilter === 'STARRED'
+              ? 'bg-amber-500 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/60 text-amber-700 dark:text-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/40'
+          }`}
+        >
+          <Star className={`w-3.5 h-3.5 ${selectedStatusFilter === 'STARRED' ? 'fill-white' : 'fill-amber-400 text-amber-400'}`} />
+          <span>Dream Jobs</span>
+          <span
+            className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+              selectedStatusFilter === 'STARRED'
+                ? 'bg-amber-600 text-white'
+                : 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300'
+            }`}
+          >
+            {statusCounts.STARRED}
+          </span>
+        </button>
+
         {STATUS_OPTIONS.map((opt) => (
           <button
             key={opt.value}
@@ -302,7 +355,7 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
             <thead>
               <tr className="bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold uppercase tracking-wider">
                 {/* Select All Checkbox Column */}
-                <th className="py-3 pl-4 pr-2 w-10 text-center">
+                <th className="py-3 pl-4 pr-1 w-10 text-center">
                   <button
                     type="button"
                     onClick={toggleSelectAll}
@@ -317,6 +370,15 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                       <Square className="w-4 h-4" />
                     )}
                   </button>
+                </th>
+
+                {/* Star Column Header */}
+                <th
+                  onClick={() => toggleSort('starred')}
+                  className="py-3 px-2 w-8 text-center cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/80 transition-colors"
+                  title="Sort by Dream Job"
+                >
+                  <Star className="w-3.5 h-3.5 mx-auto text-amber-400 fill-amber-400" />
                 </th>
 
                 <th
@@ -369,17 +431,20 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
               {processedApplications.length > 0 ? (
                 processedApplications.map((app) => {
                   const isSelected = selectedIds.has(app.id);
+                  const isStarred = isApplicationStarred(app.id);
                   return (
                     <tr
                       key={app.id}
                       className={`transition-colors group ${
                         isSelected
                           ? 'bg-sky-50/60 dark:bg-sky-950/30'
+                          : isStarred
+                          ? 'bg-amber-50/25 dark:bg-amber-950/15 hover:bg-amber-50/50 dark:hover:bg-amber-950/30'
                           : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/40'
                       }`}
                     >
                       {/* Row Checkbox Column */}
-                      <td className="py-3 pl-4 pr-2 text-center">
+                      <td className="py-3 pl-4 pr-1 text-center">
                         <button
                           type="button"
                           onClick={() => toggleSelectOne(app.id)}
@@ -391,6 +456,22 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                           ) : (
                             <Square className="w-4 h-4" />
                           )}
+                        </button>
+                      </td>
+
+                      {/* Row Star Column */}
+                      <td className="py-3 px-2 text-center">
+                        <button
+                          type="button"
+                          onClick={() => toggleStarredApplicationId(app.id)}
+                          className={`p-1 rounded transition-colors ${
+                            isStarred
+                              ? 'text-amber-400 hover:text-amber-500'
+                              : 'text-slate-300 hover:text-amber-400 opacity-0 group-hover:opacity-100 focus:opacity-100'
+                          }`}
+                          title={isStarred ? 'Unstar Dream Job' : 'Star as Dream Job'}
+                        >
+                          <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
                         </button>
                       </td>
 
@@ -406,6 +487,11 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                           >
                             {app.company_name}
                           </Link>
+                          {isStarred && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0">
+                              Dream
+                            </span>
+                          )}
                           {app.job_posting_url && (
                             <a
                               href={app.job_posting_url}
@@ -482,14 +568,14 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                             className="flex items-center gap-0.5"
                             title={`${app._count?.interviews || 0} interviews scheduled`}
                           >
-                            <Video className="w-3 h-3 text-violet-500" />
+                            <Video className="w-3.5 h-3.5 text-violet-500" />
                             <span>{app._count?.interviews || 0}</span>
                           </span>
                           <span
                             className="flex items-center gap-0.5"
                             title={`${app._count?.notes || 0} notes logged`}
                           >
-                            <StickyNote className="w-3 h-3 text-amber-500" />
+                            <StickyNote className="w-3.5 h-3.5 text-amber-500" />
                             <span>{app._count?.notes || 0}</span>
                           </span>
                         </div>
@@ -520,7 +606,7 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400 text-sm">
+                  <td colSpan={9} className="py-12 text-center text-slate-400 text-sm">
                     No applications match the current filter or search criteria.
                   </td>
                 </tr>

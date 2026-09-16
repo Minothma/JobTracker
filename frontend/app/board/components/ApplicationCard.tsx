@@ -1,17 +1,45 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Application } from '../../../lib/types';
-import { Calendar, MessageSquare, Video, FileText, ExternalLink, GripVertical } from 'lucide-react';
+import {
+  Calendar,
+  MessageSquare,
+  Video,
+  FileText,
+  ExternalLink,
+  GripVertical,
+  Star,
+} from 'lucide-react';
+import {
+  isApplicationStarred,
+  toggleStarredApplicationId,
+  STARRED_CHANGED_EVENT,
+} from '../../../lib/favorites';
 
 interface ApplicationCardProps {
   application: Application;
 }
 
 export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application }) => {
+  const [isStarred, setIsStarred] = useState<boolean>(false);
+
+  useEffect(() => {
+    setIsStarred(isApplicationStarred(application.id));
+
+    const handleStarredChanged = () => {
+      setIsStarred(isApplicationStarred(application.id));
+    };
+
+    window.addEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
+    return () => {
+      window.removeEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
+    };
+  }, [application.id]);
+
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: application.id,
     data: { application },
@@ -21,6 +49,13 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application })
     transform: CSS.Translate.toString(transform),
     opacity: isDragging ? 0.4 : 1,
     cursor: 'grab',
+  };
+
+  const handleStarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const next = toggleStarredApplicationId(application.id);
+    setIsStarred(next);
   };
 
   const formattedDate = new Date(application.applied_date).toLocaleDateString('en-US', {
@@ -33,31 +68,60 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application })
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 shadow-sm hover:shadow transition-shadow ${
-        isDragging ? 'ring-2 ring-sky-500 shadow-lg' : ''
+      className={`group relative bg-white dark:bg-slate-900 border rounded-lg p-4 shadow-sm hover:shadow transition-all ${
+        isDragging
+          ? 'ring-2 ring-sky-500 shadow-lg'
+          : isStarred
+          ? 'border-amber-300 dark:border-amber-600/70 ring-1 ring-amber-400/20 bg-linear-to-b from-amber-50/20 to-transparent dark:from-amber-950/10'
+          : 'border-slate-200 dark:border-slate-800'
       }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <Link
-            href={`/applications/${application.id}`}
-            className="font-semibold text-slate-900 dark:text-slate-100 hover:text-sky-600 dark:hover:text-sky-400 block truncate"
-          >
-            {application.company_name}
-          </Link>
+          <div className="flex items-center gap-1.5">
+            <Link
+              href={`/applications/${application.id}`}
+              className="font-semibold text-slate-900 dark:text-slate-100 hover:text-sky-600 dark:hover:text-sky-400 block truncate"
+            >
+              {application.company_name}
+            </Link>
+            {isStarred && (
+              <span
+                className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0"
+                title="Dream Company"
+              >
+                Dream
+              </span>
+            )}
+          </div>
           <p className="text-xs font-medium text-slate-600 dark:text-slate-400 truncate mt-0.5">
             {application.role_title}
           </p>
         </div>
 
-        {/* Drag handle */}
-        <div
-          {...listeners}
-          {...attributes}
-          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 -mr-1 cursor-grab active:cursor-grabbing"
-          title="Drag to change status"
-        >
-          <GripVertical className="w-4 h-4" />
+        {/* Right controls: Star button & Drag handle */}
+        <div className="flex items-center gap-0.5 shrink-0">
+          <button
+            type="button"
+            onClick={handleStarClick}
+            className={`p-1 rounded transition-colors ${
+              isStarred
+                ? 'text-amber-400 hover:text-amber-500'
+                : 'text-slate-300 hover:text-amber-400 opacity-0 group-hover:opacity-100 focus:opacity-100'
+            }`}
+            title={isStarred ? 'Unstar Dream Job' : 'Star as Dream Job'}
+          >
+            <Star className={`w-4 h-4 ${isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
+          </button>
+
+          <div
+            {...listeners}
+            {...attributes}
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 -mr-1 cursor-grab active:cursor-grabbing"
+            title="Drag to change status"
+          >
+            <GripVertical className="w-4 h-4" />
+          </div>
         </div>
       </div>
 

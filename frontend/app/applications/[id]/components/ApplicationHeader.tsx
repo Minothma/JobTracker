@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Application, ApplicationStatus } from '../../../../lib/types';
@@ -11,7 +11,12 @@ import { Input, Select } from '../../../../components/ui/Input';
 import { AiEmailGeneratorModal } from '../../../../components/AiEmailGeneratorModal';
 import { apiFetch } from '../../../../lib/api-client';
 import { useToast } from '../../../../components/ui/Toast';
-import { ArrowLeft, Calendar, ExternalLink, Trash2, Edit2, Sparkles, Mail } from 'lucide-react';
+import { ArrowLeft, Calendar, ExternalLink, Trash2, Edit2, Sparkles, Mail, Star } from 'lucide-react';
+import {
+  isApplicationStarred,
+  toggleStarredApplicationId,
+  STARRED_CHANGED_EVENT,
+} from '../../../../lib/favorites';
 
 interface ApplicationHeaderProps {
   application: Application;
@@ -24,6 +29,7 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
 }) => {
   const router = useRouter();
   const { showToast } = useToast();
+  const [isStarred, setIsStarred] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAiEmailModalOpen, setIsAiEmailModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -35,6 +41,25 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
   const [status, setStatus] = useState<ApplicationStatus>(application.status);
   const [jobPostingUrl, setJobPostingUrl] = useState(application.job_posting_url || '');
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    setIsStarred(isApplicationStarred(application.id));
+
+    const handleStarredChanged = () => {
+      setIsStarred(isApplicationStarred(application.id));
+    };
+
+    window.addEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
+    return () => {
+      window.removeEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
+    };
+  }, [application.id]);
+
+  const handleStarToggle = () => {
+    const next = toggleStarredApplicationId(application.id);
+    setIsStarred(next);
+    showToast(next ? 'Marked as Dream Job ⭐️' : 'Removed from Dream Jobs', 'info');
+  };
 
   const statusOptions = [
     { label: 'Applied', value: 'APPLIED' },
@@ -104,7 +129,9 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
   });
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
+    <div className={`bg-white dark:bg-slate-900 border rounded-xl p-6 shadow-sm space-y-4 transition-all ${
+      isStarred ? 'border-amber-300 dark:border-amber-700/80 ring-1 ring-amber-400/20 bg-linear-to-b from-amber-50/20 to-transparent dark:from-amber-950/10' : 'border-slate-200 dark:border-slate-800'
+    }`}>
       {/* Back button */}
       <div>
         <Link
@@ -123,6 +150,22 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">
               {application.company_name}
             </h1>
+            <button
+              onClick={handleStarToggle}
+              className={`p-1.5 rounded-lg border transition-all ${
+                isStarred
+                  ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/60 text-amber-500'
+                  : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400'
+              }`}
+              title={isStarred ? 'Unstar Dream Job' : 'Star as Dream Job'}
+            >
+              <Star className={`w-4 h-4 ${isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
+            </button>
+            {isStarred && (
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80">
+                ⭐️ Dream Job
+              </span>
+            )}
             <Badge status={application.status} className="text-xs px-2.5 py-1" />
           </div>
           <p className="text-base text-slate-600 dark:text-slate-300 font-medium mt-1">
