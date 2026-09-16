@@ -144,3 +144,14 @@ export interface AiMatchResponse {
   summary: string;
   analyzed_with: string;
 }
+
+export type AiEmailType = 'FOLLOW_UP' | 'THANK_YOU' | 'COLD_OUTREACH' | 'OFFER_NEGOTIATION';
+export type AiEmailTone = 'PROFESSIONAL' | 'ENTHUSIASTIC' | 'CONCISE';
+
+export interface AiEmailResponse {
+  subject: string;
+  body: string;
+  type: AiEmailType;
+  tone: AiEmailTone;
+  generated_with: string;
+}

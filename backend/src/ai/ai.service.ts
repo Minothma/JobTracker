@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { MatchResumeDto } from './dto/match-resume.dto';
+import { GenerateEmailDto, EmailType, EmailTone } from './dto/generate-email.dto';
 
 export interface AiMatchResult {
   score: number;
@@ -12,6 +13,14 @@ export interface AiMatchResult {
   interview_focus_areas: string[];
   summary: string;
   analyzed_with: string;
+}
+
+export interface AiEmailResult {
+  subject: string;
+  body: string;
+  type: EmailType;
+  tone: EmailTone;
+  generated_with: string;
 }
 
 @Injectable()
@@ -79,6 +88,174 @@ export class AiService {
 
     // High-accuracy semantic rule-based heuristic fallback
     return this.analyzeWithSemanticParser(dto.job_description, resumeContent, dto.role_title, dto.company_name, resumeLabel);
+  }
+
+  async generateEmail(userId: string, dto: GenerateEmailDto): Promise<AiEmailResult> {
+    const tone = dto.tone || EmailTone.PROFESSIONAL;
+
+    // Fetch user email if available
+    const user = await this.prisma.users.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    const candidateName = user?.email ? user.email.split('@')[0] : 'Candidate';
+
+    if (this.geminiApiKey) {
+      try {
+        const geminiEmail = await this.generateEmailWithGemini(dto, candidateName);
+        if (geminiEmail) {
+          return {
+            subject: geminiEmail.subject,
+            body: geminiEmail.body,
+            type: dto.type,
+            tone,
+            generated_with: 'Google Gemini AI',
+          };
+        }
+      } catch (err: any) {
+        this.logger.warn(`Gemini Email generation failed, falling back to smart template: ${err.message}`);
+      }
+    }
+
+    // Fallback template generator
+    return this.generateEmailWithTemplates(dto, candidateName);
+  }
+
+  private async generateEmailWithGemini(
+    dto: GenerateEmailDto,
+    candidateName: string,
+  ): Promise<{ subject: string; body: string } | null> {
+    const prompt = `
+You are an expert career advisor and technical recruiter.
+Generate a professional email communication for a job application based on the following parameters:
+
+Communication Type: ${dto.type}
+Target Company: ${dto.company_name}
+Target Role: ${dto.role_title}
+Recipient Name: ${dto.recipient_name || 'Hiring Manager'}
+Desired Tone: ${dto.tone || 'PROFESSIONAL'}
+Candidate Name: ${candidateName}
+Additional Talking Points / Notes: ${dto.extra_notes || 'None provided'}
+
+Guidelines:
+- If type is FOLLOW_UP: polite check-in on the status of the submitted application, reiterating enthusiasm and fit.
+- If type is THANK_YOU: thank the interviewer, highlight key discussion points, and reaffirm excitement.
+- If type is COLD_OUTREACH: concise message introducing yourself, why you admire the company, and asking for a brief chat or referral.
+- If type is OFFER_NEGOTIATION: professional and gracious negotiation expressing excitement for the offer while discussing compensation alignment.
+
+Respond ONLY with a valid JSON object matching this structure:
+{
+  "subject": "<Compelling Email Subject Line>",
+  "body": "<Well-formatted email body with greeting, paragraphs, and sign-off>"
+}
+`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.geminiApiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.3,
+            responseMimeType: 'application/json',
+          },
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Gemini HTTP Error ${response.status}: ${await response.text()}`);
+    }
+
+    const data: any = await response.json();
+    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!candidateText) return null;
+
+    const parsed = JSON.parse(candidateText);
+    return {
+      subject: parsed.subject || `Regarding ${dto.role_title} Application at ${dto.company_name}`,
+      body: parsed.body || '',
+    };
+  }
+
+  private generateEmailWithTemplates(dto: GenerateEmailDto, candidateName: string): AiEmailResult {
+    const recipient = dto.recipient_name || 'Hiring Team';
+    const company = dto.company_name;
+    const role = dto.role_title;
+    const tone = dto.tone || EmailTone.PROFESSIONAL;
+
+    let subject = '';
+    let body = '';
+
+    switch (dto.type) {
+      case EmailType.FOLLOW_UP:
+        subject = `Following Up: Application for ${role} – ${candidateName}`;
+        body = `Hi ${recipient},
+
+I hope you are having a productive week.
+
+I am writing to follow up on my recent application for the ${role} position at ${company}. I remains deeply excited about the opportunity to contribute to your team's engineering goals${dto.extra_notes ? `, especially regarding ${dto.extra_notes}` : ''}.
+
+Please let me know if you need any additional portfolio samples, references, or details from my end. I look forward to hearing from you.
+
+Best regards,
+${candidateName}`;
+        break;
+
+      case EmailType.THANK_YOU:
+        subject = `Thank You – ${role} Interview | ${candidateName}`;
+        body = `Dear ${recipient},
+
+Thank you for taking the time to speak with me today regarding the ${role} role at ${company}.
+
+I truly enjoyed our discussion about the engineering roadmap, technical architecture, and team culture${dto.extra_notes ? ` (especially our conversation around ${dto.extra_notes})` : ''}. Our conversation further confirmed my enthusiasm for joining ${company}.
+
+Please don't hesitate to reach out if you have any follow-up questions. I look forward to the next steps.
+
+Sincerely,
+${candidateName}`;
+        break;
+
+      case EmailType.COLD_OUTREACH:
+        subject = `Interested in ${role} Opportunities at ${company} – ${candidateName}`;
+        body = `Hi ${recipient},
+
+I hope this message finds you well.
+
+I have been following ${company}'s impressive engineering milestones and wanted to reach out regarding potential opportunities on your team for the ${role} role${dto.extra_notes ? ` (${dto.extra_notes})` : ''}.
+
+With hands-on experience in full-stack cloud systems, TypeScript, and distributed applications, I would love the chance to connect for a quick 10-minute chat to learn more about your upcoming technical priorities.
+
+Thank you for your time and consideration!
+
+Warm regards,
+${candidateName}`;
+        break;
+
+      case EmailType.OFFER_NEGOTIATION:
+        subject = `Offer Discussion: ${role} – ${candidateName}`;
+        body = `Dear ${recipient},
+
+Thank you very much for offering me the ${role} position at ${company}! I am genuinely excited about the prospect of joining the team and contributing to your upcoming milestones.
+
+Before making my final decision, I would like to discuss the compensation package${dto.extra_notes ? `, specifically regarding ${dto.extra_notes}` : ' to ensure alignment with market standards for this role'}. Based on my background and the value I can deliver from day one, is there flexibility on the base salary or equity component?
+
+I am eager to find a mutually beneficial arrangement and would appreciate a brief call to discuss.
+
+Best regards,
+${candidateName}`;
+        break;
+    }
+
+    return {
+      subject,
+      body,
+      type: dto.type,
+      tone,
+      generated_with: 'Smart Template Engine (Offline Fallback)',
+    };
   }
 
   private async analyzeWithGemini(

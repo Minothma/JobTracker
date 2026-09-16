@@ -8,9 +8,10 @@ import { Badge } from '../../../../components/ui/Badge';
 import { Button } from '../../../../components/ui/Button';
 import { Modal } from '../../../../components/ui/Modal';
 import { Input, Select } from '../../../../components/ui/Input';
+import { AiEmailGeneratorModal } from '../../../../components/AiEmailGeneratorModal';
 import { apiFetch } from '../../../../lib/api-client';
 import { useToast } from '../../../../components/ui/Toast';
-import { ArrowLeft, Calendar, ExternalLink, Trash2, Edit2 } from 'lucide-react';
+import { ArrowLeft, Calendar, ExternalLink, Trash2, Edit2, Sparkles, Mail } from 'lucide-react';
 
 interface ApplicationHeaderProps {
   application: Application;
@@ -24,6 +25,7 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
   const router = useRouter();
   const { showToast } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAiEmailModalOpen, setIsAiEmailModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [companyName, setCompanyName] = useState(application.company_name);
   const [roleTitle, setRoleTitle] = useState(application.role_title);
@@ -148,6 +150,17 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
           <Button
             variant="outline"
             size="sm"
+            onClick={() => setIsAiEmailModalOpen(true)}
+            className="border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/50"
+            title="Generate AI Follow-up or Outreach Email"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-sky-500 mr-1" />
+            <span>AI Email</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setIsEditModalOpen(true)}
             title="Edit application"
           >
@@ -236,6 +249,14 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
           </div>
         </form>
       </Modal>
+
+      {/* AI Email Outreach Modal */}
+      <AiEmailGeneratorModal
+        isOpen={isAiEmailModalOpen}
+        onClose={() => setIsAiEmailModalOpen(false)}
+        companyName={application.company_name}
+        roleTitle={application.role_title}
+      />
     </div>
   );
 };

@@ -7,7 +7,8 @@ import { KanbanBoard } from './components/KanbanBoard';
 import { ApplicationsTable } from './components/ApplicationsTable';
 import { NewApplicationModal } from './components/NewApplicationModal';
 import { Button } from '../../components/ui/Button';
-import { Plus, Search, RefreshCw, Briefcase, Video, Award, LayoutGrid, List } from 'lucide-react';
+import { Plus, Search, RefreshCw, Briefcase, Video, Award, LayoutGrid, List, Download } from 'lucide-react';
+import { exportApplicationsToCsv } from '../../lib/export-csv';
 import { useToast } from '../../components/ui/Toast';
 
 export default function BoardPage() {
@@ -36,6 +37,15 @@ export default function BoardPage() {
 
   const handleApplicationCreated = (newApp: Application) => {
     setApplications((prev) => [newApp, ...prev]);
+  };
+
+  const handleExportCsv = () => {
+    if (filteredApplications.length === 0) {
+      showToast('No applications to export', 'info');
+      return;
+    }
+    exportApplicationsToCsv(filteredApplications);
+    showToast(`Exported ${filteredApplications.length} application(s) to CSV!`, 'success');
   };
 
   // Filtered applications based on search
@@ -71,7 +81,7 @@ export default function BoardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {/* View Mode Toggle */}
           <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
             <button
@@ -99,6 +109,16 @@ export default function BoardPage() {
               <span>Table</span>
             </button>
           </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCsv}
+            title="Export applications to CSV"
+          >
+            <Download className="w-3.5 h-3.5 mr-1.5" />
+            <span>Export CSV</span>
+          </Button>
 
           <Button
             variant="outline"
