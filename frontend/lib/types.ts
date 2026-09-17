@@ -191,3 +191,35 @@ export interface AiEmailResponse {
   tone: AiEmailTone;
   generated_with: string;
 }
+
+export type InterviewRoundType = 'TECHNICAL' | 'BEHAVIORAL' | 'SYSTEM_DESIGN' | 'MIXED';
+
+export interface InterviewQuestion {
+  id: string;
+  category: 'TECHNICAL' | 'BEHAVIORAL' | 'SYSTEM_DESIGN' | 'EXPERIENCE';
+  question: string;
+  context_or_why_asked: string;
+  sample_answer_framework: string;
+  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+}
+
+export interface AiInterviewPrepResponse {
+  role_title: string;
+  company_name: string;
+  round_type: InterviewRoundType;
+  questions: InterviewQuestion[];
+  general_interview_tips: string[];
+  generated_with: string;
+}
+
+export interface ScrapedJobData {
+  url: string;
+  role_title?: string;
+  company_name?: string;
+  location?: string;
+  salary_min?: number;
+  salary_max?: number;
+  job_description?: string;
+  source?: string;
+  extracted_success: boolean;
+}

@@ -3,6 +3,8 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagg
 import { AiService } from './ai.service';
 import { MatchResumeDto } from './dto/match-resume.dto';
 import { GenerateEmailDto } from './dto/generate-email.dto';
+import { InterviewPrepDto } from './dto/interview-prep.dto';
+import { ScrapeJobUrlDto } from './dto/scrape-job-url.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -35,5 +37,28 @@ export class AiController {
     @Body() generateEmailDto: GenerateEmailDto,
   ) {
     return this.aiService.generateEmail(userId, generateEmailDto);
+  }
+
+  @Post('interview-prep')
+  @ApiOperation({
+    summary: 'Generate realistic interview practice questions, sample answer frameworks, and tips',
+  })
+  @ApiResponse({ status: 200, description: 'List of tailored interview questions and preparation advice' })
+  async generateInterviewPrep(
+    @CurrentUser('id') userId: string,
+    @Body() interviewPrepDto: InterviewPrepDto,
+  ) {
+    return this.aiService.generateInterviewPrep(userId, interviewPrepDto);
+  }
+
+  @Post('scrape-job-url')
+  @ApiOperation({
+    summary: 'Extract structured job title, company, location, and description from a job posting URL',
+  })
+  @ApiResponse({ status: 200, description: 'Scraped job details extracted from OpenGraph/JSON-LD metadata' })
+  async scrapeJobUrl(
+    @Body() scrapeJobUrlDto: ScrapeJobUrlDto,
+  ) {
+    return this.aiService.scrapeJobPostingUrl(scrapeJobUrlDto);
   }
 }

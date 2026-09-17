@@ -5,9 +5,9 @@ import { Modal } from '../../../components/ui/Modal';
 import { Input, Select } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 import { apiFetch } from '../../../lib/api-client';
-import { Application, ApplicationStatus, Resume, WorkMode } from '../../../lib/types';
+import { Application, ApplicationStatus, Resume, WorkMode, ScrapedJobData } from '../../../lib/types';
 import { useToast } from '../../../components/ui/Toast';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Sparkles, RefreshCw, Link as LinkIcon, Zap } from 'lucide-react';
 
 interface NewApplicationModalProps {
   isOpen: boolean;
@@ -21,6 +21,9 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
   onSuccess,
 }) => {
   const { showToast } = useToast();
+  const [quickUrl, setQuickUrl] = useState('');
+  const [isScraping, setIsScraping] = useState(false);
+
   const [companyName, setCompanyName] = useState('');
   const [roleTitle, setRoleTitle] = useState('');
   const [appliedDate, setAppliedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -43,6 +46,7 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       // Reset form
+      setQuickUrl('');
       setCompanyName('');
       setRoleTitle('');
       setAppliedDate(new Date().toISOString().split('T')[0]);
@@ -65,6 +69,42 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
         .catch(() => setResumes([]));
     }
   }, [isOpen]);
+
+  const handleScrapeUrl = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickUrl.trim()) {
+      showToast('Please enter a job posting URL to scrape', 'error');
+      return;
+    }
+
+    try {
+      setIsScraping(true);
+      const data = await apiFetch<ScrapedJobData>('/ai/scrape-job-url', {
+        method: 'POST',
+        body: JSON.stringify({ url: quickUrl.trim() }),
+      });
+
+      if (data.role_title) setRoleTitle(data.role_title);
+      if (data.company_name) setCompanyName(data.company_name);
+      if (data.location) setLocation(data.location);
+      if (data.job_description) {
+        setJobDescription(data.job_description);
+        setShowAdvanced(true);
+      }
+      setJobPostingUrl(quickUrl.trim());
+
+      showToast(
+        data.extracted_success
+          ? `Auto-filled details for ${data.role_title || 'Role'} at ${data.company_name || 'Company'}!`
+          : 'Extracted URL domain. Please verify title and company name.',
+        'success',
+      );
+    } catch (err: any) {
+      showToast(err.message || 'Failed to extract metadata from URL', 'error');
+    } finally {
+      setIsScraping(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,7 +179,49 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
+      {/* AI Job Link Auto-fill Bar */}
+      <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-purple-500/10 border border-sky-500/20">
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <span className="text-xs font-semibold text-sky-400 flex items-center gap-1.5">
+            <Zap className="h-3.5 w-3.5 text-amber-400" />
+            Quick Auto-Fill from Job Link (AI Scraper)
+          </span>
+          <span className="text-[10px] text-slate-400">LinkedIn, Indeed, Greenhouse, Lever, etc.</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            <input
+              type="url"
+              placeholder="Paste job posting URL (e.g. https://careers.company.com/job/...)"
+              value={quickUrl}
+              onChange={(e) => setQuickUrl(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950/80 border border-slate-700/80 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            />
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleScrapeUrl}
+            disabled={isScraping || !quickUrl.trim()}
+            className="text-xs bg-sky-600 hover:bg-sky-500 text-white shrink-0"
+          >
+            {isScraping ? (
+              <>
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                Extracting...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                Auto-fill
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Company Name *"

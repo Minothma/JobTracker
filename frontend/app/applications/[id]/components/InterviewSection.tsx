@@ -9,7 +9,8 @@ import { Input, Select } from '../../../../components/ui/Input';
 import { apiFetch } from '../../../../lib/api-client';
 import { useToast } from '../../../../components/ui/Toast';
 import { generateGoogleCalendarUrl, downloadIcsFile } from '../../../../lib/calendar';
-import { Video, Plus, Calendar, Trash2, ExternalLink, Download } from 'lucide-react';
+import { AiInterviewPrepModal } from '../../../../components/AiInterviewPrepModal';
+import { Video, Plus, Calendar, Trash2, ExternalLink, Download, Brain, Sparkles } from 'lucide-react';
 
 interface InterviewSectionProps {
   applicationId: string;
@@ -28,6 +29,7 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
 }) => {
   const { showToast } = useToast();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAiPrepModalOpen, setIsAiPrepModalOpen] = useState(false);
   const [roundType, setRoundType] = useState('Technical Interview');
   const [scheduledAt, setScheduledAt] = useState('');
   const [outcome, setOutcome] = useState('PENDING');
@@ -114,10 +116,23 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
           </span>
         </div>
 
-        <Button size="sm" onClick={() => setIsAddModalOpen(true)}>
-          <Plus className="w-3.5 h-3.5 mr-1" />
-          Schedule Round
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAiPrepModalOpen(true)}
+            className="border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50"
+            title="Practice realistic questions tailored for this role"
+          >
+            <Brain className="w-3.5 h-3.5 mr-1 text-purple-500" />
+            AI Mock Prep
+          </Button>
+
+          <Button size="sm" onClick={() => setIsAddModalOpen(true)}>
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            Schedule Round
+          </Button>
+        </div>
       </div>
 
       {interviews.length === 0 ? (
@@ -286,6 +301,15 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
           </div>
         </form>
       </Modal>
+
+      {/* AI Interview Prep Modal */}
+      <AiInterviewPrepModal
+        isOpen={isAiPrepModalOpen}
+        onClose={() => setIsAiPrepModalOpen(false)}
+        applicationId={applicationId}
+        companyName={companyName}
+        roleTitle={roleTitle}
+      />
     </div>
   );
 };

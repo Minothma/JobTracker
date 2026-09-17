@@ -9,6 +9,7 @@ import { Button } from '../../../../components/ui/Button';
 import { Modal } from '../../../../components/ui/Modal';
 import { Input, Select } from '../../../../components/ui/Input';
 import { AiEmailGeneratorModal } from '../../../../components/AiEmailGeneratorModal';
+import { AiInterviewPrepModal } from '../../../../components/AiInterviewPrepModal';
 import { apiFetch } from '../../../../lib/api-client';
 import { useToast } from '../../../../components/ui/Toast';
 import {
@@ -18,6 +19,7 @@ import {
   Trash2,
   Edit2,
   Sparkles,
+  Brain,
   Star,
   MapPin,
   Briefcase,
@@ -44,6 +46,7 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
   );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAiEmailModalOpen, setIsAiEmailModalOpen] = useState(false);
+  const [isAiInterviewPrepOpen, setIsAiInterviewPrepOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Edit Form state
@@ -261,6 +264,17 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
           <Button
             variant="outline"
             size="sm"
+            onClick={() => setIsAiInterviewPrepOpen(true)}
+            className="border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50"
+            title="Practice tailored AI Interview Questions"
+          >
+            <Brain className="w-3.5 h-3.5 text-purple-500 mr-1" />
+            <span>Interview Prep</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setIsAiEmailModalOpen(true)}
             className="border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/50"
             title="Generate AI Follow-up or Outreach Email"
@@ -452,6 +466,17 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
         onClose={() => setIsAiEmailModalOpen(false)}
         companyName={application.company_name}
         roleTitle={application.role_title}
+      />
+
+      {/* AI Interview Prep Modal */}
+      <AiInterviewPrepModal
+        isOpen={isAiInterviewPrepOpen}
+        onClose={() => setIsAiInterviewPrepOpen(false)}
+        applicationId={application.id}
+        companyName={application.company_name}
+        roleTitle={application.role_title}
+        jobDescription={application.job_description || undefined}
+        initialResumeId={application.resume_id}
       />
     </div>
   );

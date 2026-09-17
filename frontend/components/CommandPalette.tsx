@@ -19,6 +19,7 @@ import {
   Command,
   X,
   Star,
+  Brain,
 } from 'lucide-react';
 import { exportApplicationsToCsv } from '../lib/export-csv';
 import { useToast } from './ui/Toast';
@@ -134,6 +135,22 @@ export const CommandPalette: React.FC = () => {
 
     // 2. Quick Actions
     list.push(
+      {
+        id: 'act-ai-practice',
+        title: 'AI Mock Interview Prep',
+        subtitle: 'Generate realistic interview practice questions with model answers',
+        category: 'Actions',
+        icon: <Brain className="w-4 h-4 text-purple-500" />,
+        onSelect: () => {
+          if (applications.length > 0) {
+            router.push(`/applications/${applications[0].id}`);
+            showToast('Opening application for AI Mock Interview practice...', 'info');
+          } else {
+            router.push('/board');
+            showToast('Create or select an application to start AI Interview practice', 'info');
+          }
+        },
+      },
       {
         id: 'act-export-csv',
         title: 'Export Applications to CSV',
