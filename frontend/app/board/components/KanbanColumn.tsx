@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useDroppable } from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { Application, ApplicationStatus } from '../../../lib/types';
 import { ApplicationCard } from './ApplicationCard';
-import { isApplicationStarred, STARRED_CHANGED_EVENT } from '../../../lib/favorites';
 
 interface KanbanColumnProps {
   status: ApplicationStatus;
@@ -12,12 +15,12 @@ interface KanbanColumnProps {
   applications: Application[];
 }
 
-const columnConfig: Record<ApplicationStatus, { dot: string; border: string }> = {
-  APPLIED: { dot: 'bg-sky-500', border: 'border-t-sky-500' },
-  INTERVIEW: { dot: 'bg-amber-500', border: 'border-t-amber-500' },
-  OFFER: { dot: 'bg-emerald-500', border: 'border-t-emerald-500' },
-  REJECTED: { dot: 'bg-rose-500', border: 'border-t-rose-500' },
-  WITHDRAWN: { dot: 'bg-slate-500', border: 'border-t-slate-500' },
+const columnConfig: Record<ApplicationStatus, { dot: string; border: string; bg: string }> = {
+  APPLIED: { dot: 'bg-sky-500', border: 'border-t-sky-500', bg: 'hover:border-sky-300' },
+  INTERVIEW: { dot: 'bg-amber-500', border: 'border-t-amber-500', bg: 'hover:border-amber-300' },
+  OFFER: { dot: 'bg-emerald-500', border: 'border-t-emerald-500', bg: 'hover:border-emerald-300' },
+  REJECTED: { dot: 'bg-rose-500', border: 'border-t-rose-500', bg: 'hover:border-rose-300' },
+  WITHDRAWN: { dot: 'bg-slate-500', border: 'border-t-slate-500', bg: 'hover:border-slate-300' },
 };
 
 export const KanbanColumn: React.FC<KanbanColumnProps> = ({
@@ -25,61 +28,55 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   title,
   applications,
 }) => {
-  const [starredChangeCounter, setStarredChangeCounter] = useState(0);
-
-  useEffect(() => {
-    const handleStarredChanged = () => {
-      setStarredChangeCounter((prev) => prev + 1);
-    };
-
-    window.addEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
-    return () => {
-      window.removeEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
-    };
-  }, []);
-
-  const sortedApplications = useMemo(() => {
-    return [...applications].sort((a, b) => {
-      const aStarred = isApplicationStarred(a.id) ? 1 : 0;
-      const bStarred = isApplicationStarred(b.id) ? 1 : 0;
-      return bStarred - aStarred; // Starred items first
-    });
-  }, [applications, starredChangeCounter]);
-
   const { setNodeRef, isOver } = useDroppable({
     id: status,
+    data: {
+      type: 'Column',
+      status,
+    },
   });
 
-  const config = columnConfig[status] || { dot: 'bg-slate-500', border: 'border-t-slate-500' };
+  const itemIds = useMemo(() => applications.map((app) => app.id), [applications]);
+  const config = columnConfig[status] || {
+    dot: 'bg-slate-500',
+    border: 'border-t-slate-500',
+    bg: 'hover:border-slate-300',
+  };
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col min-w-[280px] w-full bg-slate-100/70 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 border-t-4 ${
+      className={`flex flex-col min-w-[280px] w-full bg-slate-100/70 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 border-t-4 ${
         config.border
-      } p-3 transition-colors ${isOver ? 'bg-sky-50/50 dark:bg-sky-950/20 ring-2 ring-sky-400' : ''}`}
+      } p-3 transition-all duration-200 ${
+        isOver
+          ? 'bg-sky-50/60 dark:bg-sky-950/30 ring-2 ring-sky-400 shadow-md'
+          : 'shadow-2xs'
+      }`}
     >
       {/* Column Header */}
       <div className="flex items-center justify-between px-1 py-1.5 mb-3">
         <div className="flex items-center gap-2">
-          <span className={`w-2.5 h-2.5 rounded-full ${config.dot}`} />
-          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{title}</h2>
+          <span className={`w-2.5 h-2.5 rounded-full ${config.dot} shadow-xs`} />
+          <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200">{title}</h2>
         </div>
-        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-2xs">
+        <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-2xs">
           {applications.length}
         </span>
       </div>
 
-      {/* Cards container */}
-      <div className="flex-1 flex flex-col gap-2.5 min-h-[160px] overflow-y-auto">
-        {sortedApplications.length > 0 ? (
-          sortedApplications.map((app) => <ApplicationCard key={app.id} application={app} />)
-        ) : (
-          <div className="h-full min-h-[120px] flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-400">
-            Drop application here
-          </div>
-        )}
-      </div>
+      {/* Sortable Cards Container */}
+      <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+        <div className="flex-1 flex flex-col gap-3 min-h-[180px]">
+          {applications.length > 0 ? (
+            applications.map((app) => <ApplicationCard key={app.id} application={app} />)
+          ) : (
+            <div className="h-full min-h-[140px] flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-400 gap-1 p-4 text-center">
+              <span>Drop application here</span>
+            </div>
+          )}
+        </div>
+      </SortableContext>
     </div>
   );
 };

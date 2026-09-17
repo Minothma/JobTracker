@@ -3,6 +3,7 @@ import './globals.css';
 import { AuthProvider } from '../lib/auth-context';
 import { ToastProvider } from '../components/ui/Toast';
 import { Navbar } from '../components/Navbar';
+import { CommandPalette } from '../components/CommandPalette';
 
 export const metadata: Metadata = {
   title: 'JobTracker — Job Application Tracker',
@@ -20,6 +21,7 @@ export default function RootLayout({
         <AuthProvider>
           <ToastProvider>
             <Navbar />
+            <CommandPalette />
             <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               {children}
             </main>

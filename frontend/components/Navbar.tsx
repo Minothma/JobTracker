@@ -18,9 +18,11 @@ import {
   ArrowRight,
   RefreshCw,
   AlertTriangle,
+  Search,
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useToast } from './ui/Toast';
+import { openCommandPalette } from './CommandPalette';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -147,6 +149,19 @@ export const Navbar: React.FC = () => {
             </Link>
           </nav>
         </div>
+
+        {/* Center/Right: Quick Search Command Trigger */}
+        <button
+          onClick={openCommandPalette}
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors cursor-pointer"
+          title="Search applications or jump to pages (Ctrl+K)"
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span>Search applications...</span>
+          <kbd className="px-1.5 py-0.5 text-[10px] font-semibold bg-white dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700 text-slate-500">
+            ⌘K
+          </kbd>
+        </button>
 
         {/* User profile, Notifications, theme toggle & logout */}
         <div className="flex items-center gap-3">

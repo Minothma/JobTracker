@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useDraggable } from '@dnd-kit/core';
+import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Application } from '../../../lib/types';
 import {
@@ -25,9 +25,13 @@ import { formatCurrency } from '../../../lib/offers';
 
 interface ApplicationCardProps {
   application: Application;
+  isOverlay?: boolean;
 }
 
-export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application }) => {
+export const ApplicationCard: React.FC<ApplicationCardProps> = ({
+  application,
+  isOverlay = false,
+}) => {
   const [isStarred, setIsStarred] = useState<boolean>(
     application.is_favorite !== undefined ? application.is_favorite : isApplicationStarred(application.id),
   );
@@ -49,15 +53,23 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application })
     };
   }, [application.id, application.is_favorite]);
 
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: application.id,
     data: { application },
+    disabled: isOverlay,
   });
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.4 : 1,
-    cursor: 'grab',
+    transition,
+    opacity: isDragging ? 0.3 : 1,
   };
 
   const handleStarClick = async (e: React.MouseEvent) => {
@@ -75,14 +87,16 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application })
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      className={`group relative bg-white dark:bg-slate-900 border rounded-lg p-4 shadow-sm hover:shadow transition-all ${
-        isDragging
-          ? 'ring-2 ring-sky-500 shadow-lg'
+      ref={isOverlay ? undefined : setNodeRef}
+      style={isOverlay ? undefined : style}
+      className={`group relative bg-white dark:bg-slate-900 border rounded-xl p-4 transition-all ${
+        isOverlay
+          ? 'shadow-2xl ring-2 ring-sky-500/80 border-sky-400 rotate-2 scale-105 cursor-grabbing bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs'
+          : isDragging
+          ? 'ring-2 ring-sky-400 border-sky-300 shadow-sm'
           : isStarred
-          ? 'border-amber-300 dark:border-amber-600/70 ring-1 ring-amber-400/20 bg-linear-to-b from-amber-50/20 to-transparent dark:from-amber-950/10'
-          : 'border-slate-200 dark:border-slate-800'
+          ? 'border-amber-300 dark:border-amber-600/70 ring-1 ring-amber-400/20 bg-linear-to-b from-amber-50/20 to-transparent dark:from-amber-950/10 shadow-xs hover:shadow-md'
+          : 'border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md'
       }`}
     >
       <div className="flex items-start justify-between gap-2">
@@ -90,14 +104,15 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application })
           <div className="flex items-center gap-1.5">
             <Link
               href={`/applications/${application.id}`}
-              className="font-semibold text-slate-900 dark:text-slate-100 hover:text-sky-600 dark:hover:text-sky-400 block truncate"
+              className="font-semibold text-slate-900 dark:text-slate-100 hover:text-sky-600 dark:hover:text-sky-400 block truncate text-sm"
+              onClick={(e) => isOverlay && e.preventDefault()}
             >
               {application.company_name}
             </Link>
             {isStarred && (
               <span
                 className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0"
-                title="Starred / Priority Application"
+                title="Starred Application"
               >
                 Starred
               </span>
@@ -123,14 +138,16 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application })
             <Star className={`w-4 h-4 ${isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
           </button>
 
-          <div
-            {...listeners}
-            {...attributes}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 -mr-1 cursor-grab active:cursor-grabbing"
-            title="Drag to change status"
-          >
-            <GripVertical className="w-4 h-4" />
-          </div>
+          {!isOverlay && (
+            <div
+              {...listeners}
+              {...attributes}
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 -mr-1 cursor-grab active:cursor-grabbing"
+              title="Drag to reorder or change column"
+            >
+              <GripVertical className="w-4 h-4" />
+            </div>
+          )}
         </div>
       </div>
 
