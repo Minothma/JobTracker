@@ -1,4 +1,14 @@
-import { IsDateString, IsEnum, IsOptional, IsString, IsUrl, IsUUID } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUrl,
+  IsUUID,
+  Min,
+} from 'class-validator';
 import { application_status } from '@prisma/client';
 
 export class UpdateApplicationDto {
@@ -25,4 +35,46 @@ export class UpdateApplicationDto {
   @IsUUID('4')
   @IsOptional()
   resume_id?: string | null;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  salary_min?: number | null;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  salary_max?: number | null;
+
+  @IsString()
+  @IsOptional()
+  currency?: string | null;
+
+  @IsString()
+  @IsOptional()
+  work_mode?: string | null;
+
+  @IsString()
+  @IsOptional()
+  location?: string | null;
+
+  @IsString()
+  @IsOptional()
+  job_description?: string | null;
+
+  @IsBoolean()
+  @IsOptional()
+  is_favorite?: boolean;
+
+  @IsString()
+  @IsOptional()
+  contact_name?: string | null;
+
+  @IsString()
+  @IsOptional()
+  contact_email?: string | null;
+
+  @IsString()
+  @IsOptional()
+  rejection_reason?: string | null;
 }

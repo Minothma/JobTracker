@@ -1,32 +1,24 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Application } from '../../../../lib/types';
+import { Application, OfferPackage, OfferCurrency, WorkMode } from '../../../../lib/types';
 import {
-  OfferPackage,
-  OfferCurrency,
-  WorkMode,
-  getOfferPackage,
-  saveOfferPackage,
-  deleteOfferPackage,
+  fetchApplicationOffer,
+  saveOfferToApi,
+  deleteOfferFromApi,
   formatCurrency,
   calculateTotalCompensation,
   OFFERS_CHANGED_EVENT,
 } from '../../../../lib/offers';
 import { Button } from '../../../../components/ui/Button';
 import { Modal } from '../../../../components/ui/Modal';
-import { Input, Select } from '../../../../components/ui/Input';
+import { Input } from '../../../../components/ui/Input';
 import { useToast } from '../../../../components/ui/Toast';
 import {
   Award,
-  DollarSign,
-  Plus,
   Edit2,
   Trash2,
   Calendar,
-  Globe,
-  Building,
-  CheckCircle2,
   Sparkles,
 } from 'lucide-react';
 
@@ -53,8 +45,9 @@ const WORK_MODES: { label: string; value: WorkMode }[] = [
 
 export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ application }) => {
   const { showToast } = useToast();
-  const [offer, setOffer] = useState<OfferPackage | null>(null);
+  const [offer, setOffer] = useState<OfferPackage | null>(application.offers || null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   // Form inputs
   const [baseSalary, setBaseSalary] = useState<string>('');
@@ -65,22 +58,41 @@ export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ applic
   const [benefitsSummary, setBenefitsSummary] = useState<string>('');
   const [offerDeadline, setOfferDeadline] = useState<string>('');
 
-  const loadOffer = () => {
-    const existing = getOfferPackage(application.id);
-    setOffer(existing);
-    if (existing) {
-      setBaseSalary(String(existing.baseSalary || ''));
-      setCurrency(existing.currency);
-      setBonus(String(existing.bonus || ''));
-      setEquity(String(existing.equity || ''));
-      setWorkMode(existing.workMode);
-      setBenefitsSummary(existing.benefitsSummary || '');
-      setOfferDeadline(existing.offerDeadline || '');
+  const populateForm = (data: OfferPackage | null) => {
+    if (data) {
+      setBaseSalary(String(data.base_salary || ''));
+      setCurrency(data.currency || 'USD');
+      setBonus(String(data.bonus || ''));
+      setEquity(String(data.equity || ''));
+      setWorkMode(data.work_mode || 'REMOTE');
+      setBenefitsSummary(data.benefits_summary || '');
+      setOfferDeadline(data.offer_deadline ? data.offer_deadline.split('T')[0] : '');
+    } else {
+      setBaseSalary('');
+      setCurrency('USD');
+      setBonus('');
+      setEquity('');
+      setWorkMode('REMOTE');
+      setBenefitsSummary('');
+      setOfferDeadline('');
+    }
+  };
+
+  const loadOffer = async () => {
+    const remoteOffer = await fetchApplicationOffer(application.id);
+    if (remoteOffer) {
+      setOffer(remoteOffer);
+      populateForm(remoteOffer);
     }
   };
 
   useEffect(() => {
-    loadOffer();
+    if (application.offers) {
+      setOffer(application.offers);
+      populateForm(application.offers);
+    } else {
+      loadOffer();
+    }
 
     const handleChanged = () => {
       loadOffer();
@@ -90,14 +102,14 @@ export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ applic
     return () => {
       window.removeEventListener(OFFERS_CHANGED_EVENT, handleChanged);
     };
-  }, [application.id]);
+  }, [application.id, application.offers]);
 
   const handleOpenModal = () => {
-    loadOffer();
+    populateForm(offer);
     setIsModalOpen(true);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const numBase = parseFloat(baseSalary) || 0;
     if (numBase <= 0) {
@@ -105,31 +117,38 @@ export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ applic
       return;
     }
 
-    const packageData: OfferPackage = {
-      applicationId: application.id,
-      companyName: application.company_name,
-      roleTitle: application.role_title,
-      baseSalary: numBase,
-      currency,
-      bonus: parseFloat(bonus) || 0,
-      equity: parseFloat(equity) || 0,
-      workMode,
-      benefitsSummary: benefitsSummary.trim(),
-      offerDeadline: offerDeadline || undefined,
-      updatedAt: new Date().toISOString(),
-    };
+    try {
+      setIsSaving(true);
+      const savedOffer = await saveOfferToApi(application.id, {
+        base_salary: numBase,
+        currency,
+        bonus: parseFloat(bonus) || 0,
+        equity: parseFloat(equity) || 0,
+        work_mode: workMode,
+        benefits_summary: benefitsSummary.trim() || undefined,
+        offer_deadline: offerDeadline || undefined,
+      });
 
-    saveOfferPackage(packageData);
-    setOffer(packageData);
-    setIsModalOpen(false);
-    showToast('Offer package saved successfully! 🎉', 'success');
+      setOffer(savedOffer);
+      setIsModalOpen(false);
+      showToast('Offer package saved to database! 🎉', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to save offer package', 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to remove this offer package?')) return;
-    deleteOfferPackage(application.id);
-    setOffer(null);
-    showToast('Offer package removed', 'info');
+    try {
+      await deleteOfferFromApi(application.id);
+      setOffer(null);
+      populateForm(null);
+      showToast('Offer package removed from database', 'info');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete offer package', 'error');
+    }
   };
 
   const totalComp = offer ? calculateTotalCompensation(offer) : 0;
@@ -169,7 +188,7 @@ export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ applic
       {offer ? (
         <div className="space-y-4">
           {/* Total Compensation Banner */}
-          <div className="p-3.5 rounded-xl bg-linear-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/30 border border-emerald-200 dark:border-emerald-800/60">
+          <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/30 border border-emerald-200 dark:border-emerald-800/60">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">
@@ -184,7 +203,7 @@ export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ applic
               </div>
               <div className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center gap-1 border border-emerald-200 dark:border-emerald-700">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>{offer.workMode}</span>
+                <span>{offer.work_mode}</span>
               </div>
             </div>
           </div>
@@ -194,38 +213,38 @@ export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ applic
             <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
               <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Base Salary</p>
               <p className="text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5">
-                {formatCurrency(offer.baseSalary, offer.currency)}
+                {formatCurrency(Number(offer.base_salary), offer.currency)}
               </p>
             </div>
 
             <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
               <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Bonus</p>
               <p className="text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5">
-                {offer.bonus ? formatCurrency(offer.bonus, offer.currency) : '—'}
+                {Number(offer.bonus) > 0 ? formatCurrency(Number(offer.bonus), offer.currency) : '—'}
               </p>
             </div>
 
             <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
               <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Equity / RSU</p>
               <p className="text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5">
-                {offer.equity ? formatCurrency(offer.equity, offer.currency) : '—'}
+                {Number(offer.equity) > 0 ? formatCurrency(Number(offer.equity), offer.currency) : '—'}
               </p>
             </div>
           </div>
 
           {/* Deadline and Benefits */}
-          {(offer.offerDeadline || offer.benefitsSummary) && (
+          {(offer.offer_deadline || offer.benefits_summary) && (
             <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
-              {offer.offerDeadline && (
+              {offer.offer_deadline && (
                 <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-medium">
                   <Calendar className="w-3.5 h-3.5" />
-                  <span>Acceptance Deadline: {new Date(offer.offerDeadline).toLocaleDateString()}</span>
+                  <span>Acceptance Deadline: {new Date(offer.offer_deadline).toLocaleDateString()}</span>
                 </div>
               )}
 
-              {offer.benefitsSummary && (
+              {offer.benefits_summary && (
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-[11px] bg-slate-50 dark:bg-slate-800/50 p-2 rounded-md">
-                  💡 <span className="font-semibold">Perks:</span> {offer.benefitsSummary}
+                  💡 <span className="font-semibold">Perks:</span> {offer.benefits_summary}
                 </p>
               )}
             </div>
@@ -241,7 +260,6 @@ export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ applic
             onClick={handleOpenModal}
             className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
           >
-            <Plus className="w-3.5 h-3.5 mr-1" />
             Log Offer Package
           </Button>
         </div>
@@ -257,7 +275,7 @@ export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ applic
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">
               <Input
-                label="Base Annual Salary"
+                label="Base Annual Salary *"
                 type="number"
                 min="0"
                 step="1000"
@@ -345,7 +363,12 @@ export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ applic
             <Button type="button" variant="outline" size="sm" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+            <Button
+              type="submit"
+              size="sm"
+              isLoading={isSaving}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
               Save Offer Package
             </Button>
           </div>

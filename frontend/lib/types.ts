@@ -1,4 +1,6 @@
 export type ApplicationStatus = 'APPLIED' | 'INTERVIEW' | 'OFFER' | 'REJECTED' | 'WITHDRAWN';
+export type WorkMode = 'REMOTE' | 'HYBRID' | 'ONSITE';
+export type OfferCurrency = 'USD' | 'LKR' | 'EUR' | 'GBP' | 'CAD' | 'AUD' | 'SGD' | 'INR';
 
 export interface User {
   id: string;
@@ -36,6 +38,29 @@ export interface Note {
   created_at: string;
 }
 
+export interface OfferPackage {
+  id?: string;
+  application_id: string;
+  user_id?: string;
+  base_salary: number;
+  currency: OfferCurrency;
+  bonus: number;
+  equity: number;
+  work_mode: WorkMode;
+  benefits_summary?: string | null;
+  offer_deadline?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  applications?: {
+    id: string;
+    company_name: string;
+    role_title: string;
+    status: ApplicationStatus;
+    applied_date?: string;
+    location?: string | null;
+  };
+}
+
 export interface Application {
   id: string;
   user_id: string;
@@ -45,6 +70,16 @@ export interface Application {
   status: ApplicationStatus;
   applied_date: string;
   job_posting_url?: string | null;
+  salary_min?: number | null;
+  salary_max?: number | null;
+  currency?: string | null;
+  work_mode?: WorkMode | string | null;
+  location?: string | null;
+  job_description?: string | null;
+  is_favorite?: boolean;
+  contact_name?: string | null;
+  contact_email?: string | null;
+  rejection_reason?: string | null;
   created_at: string;
   updated_at: string;
   resumes?: {
@@ -53,6 +88,7 @@ export interface Application {
     original_filename: string;
     download_url?: string;
   } | null;
+  offers?: OfferPackage | null;
   interviews?: Interview[];
   notes?: Note[];
   _count?: {

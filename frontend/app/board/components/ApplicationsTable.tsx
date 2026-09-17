@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import {
   isApplicationStarred,
+  toggleFavoriteApi,
   toggleStarredApplicationId,
   STARRED_CHANGED_EVENT,
 } from '../../../lib/favorites';
@@ -72,6 +73,13 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
     };
   }, []);
 
+  const handleToggleStar = async (appId: string, currentStarred: boolean) => {
+    const next = await toggleFavoriteApi(appId, currentStarred);
+    onApplicationsChange(
+      applications.map((app) => (app.id === appId ? { ...app, is_favorite: next } : app)),
+    );
+  };
+
   // Status Filter Counts
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {
@@ -87,7 +95,7 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
       if (counts[app.status] !== undefined) {
         counts[app.status]++;
       }
-      if (isApplicationStarred(app.id)) {
+      if (app.is_favorite || isApplicationStarred(app.id)) {
         counts.STARRED++;
       }
     });
@@ -99,15 +107,15 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
     let result = [...applications];
 
     if (selectedStatusFilter === 'STARRED') {
-      result = result.filter((app) => isApplicationStarred(app.id));
+      result = result.filter((app) => app.is_favorite || isApplicationStarred(app.id));
     } else if (selectedStatusFilter !== 'ALL') {
       result = result.filter((app) => app.status === selectedStatusFilter);
     }
 
     result.sort((a, b) => {
       if (sortField === 'starred') {
-        const aStar = isApplicationStarred(a.id) ? 1 : 0;
-        const bStar = isApplicationStarred(b.id) ? 1 : 0;
+        const aStar = (a.is_favorite || isApplicationStarred(a.id)) ? 1 : 0;
+        const bStar = (b.is_favorite || isApplicationStarred(b.id)) ? 1 : 0;
         return sortAsc ? aStar - bStar : bStar - aStar;
       }
 
@@ -463,13 +471,13 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                       <td className="py-3 px-2 text-center">
                         <button
                           type="button"
-                          onClick={() => toggleStarredApplicationId(app.id)}
+                          onClick={() => handleToggleStar(app.id, isStarred)}
                           className={`p-1 rounded transition-colors ${
                             isStarred
                               ? 'text-amber-400 hover:text-amber-500'
                               : 'text-slate-300 hover:text-amber-400 opacity-0 group-hover:opacity-100 focus:opacity-100'
                           }`}
-                          title={isStarred ? 'Unstar Dream Job' : 'Star as Dream Job'}
+                          title={isStarred ? 'Unstar Application' : 'Star Application'}
                         >
                           <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
                         </button>
@@ -489,7 +497,7 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                           </Link>
                           {isStarred && (
                             <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0">
-                              Dream
+                              Starred
                             </span>
                           )}
                           {app.job_posting_url && (
@@ -508,7 +516,14 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
 
                       {/* Role Title Column */}
                       <td className="py-3 px-3 text-slate-700 dark:text-slate-300">
-                        {app.role_title}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span>{app.role_title}</span>
+                          {app.work_mode && (
+                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                              {app.work_mode}
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Status Column with Inline Quick Selector */}

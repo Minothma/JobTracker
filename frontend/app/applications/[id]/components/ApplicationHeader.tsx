@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Application, ApplicationStatus } from '../../../../lib/types';
+import { Application, ApplicationStatus, WorkMode } from '../../../../lib/types';
 import { Badge } from '../../../../components/ui/Badge';
 import { Button } from '../../../../components/ui/Button';
 import { Modal } from '../../../../components/ui/Modal';
@@ -11,10 +11,20 @@ import { Input, Select } from '../../../../components/ui/Input';
 import { AiEmailGeneratorModal } from '../../../../components/AiEmailGeneratorModal';
 import { apiFetch } from '../../../../lib/api-client';
 import { useToast } from '../../../../components/ui/Toast';
-import { ArrowLeft, Calendar, ExternalLink, Trash2, Edit2, Sparkles, Mail, Star } from 'lucide-react';
+import {
+  ArrowLeft,
+  Calendar,
+  ExternalLink,
+  Trash2,
+  Edit2,
+  Sparkles,
+  Star,
+  MapPin,
+  Briefcase,
+} from 'lucide-react';
 import {
   isApplicationStarred,
-  toggleStarredApplicationId,
+  toggleFavoriteApi,
   STARRED_CHANGED_EVENT,
 } from '../../../../lib/favorites';
 
@@ -29,36 +39,52 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
 }) => {
   const router = useRouter();
   const { showToast } = useToast();
-  const [isStarred, setIsStarred] = useState(false);
+  const [isStarred, setIsStarred] = useState(
+    application.is_favorite !== undefined ? application.is_favorite : isApplicationStarred(application.id),
+  );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAiEmailModalOpen, setIsAiEmailModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Edit Form state
   const [companyName, setCompanyName] = useState(application.company_name);
   const [roleTitle, setRoleTitle] = useState(application.role_title);
   const [appliedDate, setAppliedDate] = useState(
     new Date(application.applied_date).toISOString().split('T')[0],
   );
   const [status, setStatus] = useState<ApplicationStatus>(application.status);
+  const [workMode, setWorkMode] = useState<WorkMode>((application.work_mode as WorkMode) || 'REMOTE');
+  const [location, setLocation] = useState(application.location || '');
+  const [salaryMin, setSalaryMin] = useState(application.salary_min ? String(application.salary_min) : '');
+  const [salaryMax, setSalaryMax] = useState(application.salary_max ? String(application.salary_max) : '');
+  const [jobDescription, setJobDescription] = useState(application.job_description || '');
+  const [contactName, setContactName] = useState(application.contact_name || '');
+  const [contactEmail, setContactEmail] = useState(application.contact_email || '');
   const [jobPostingUrl, setJobPostingUrl] = useState(application.job_posting_url || '');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    setIsStarred(isApplicationStarred(application.id));
+    setIsStarred(
+      application.is_favorite !== undefined ? application.is_favorite : isApplicationStarred(application.id),
+    );
 
-    const handleStarredChanged = () => {
-      setIsStarred(isApplicationStarred(application.id));
+    const handleStarredChanged = (e: any) => {
+      if (e.detail?.id === application.id) {
+        setIsStarred(e.detail.isStarred);
+      }
     };
 
     window.addEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
     return () => {
       window.removeEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
     };
-  }, [application.id]);
+  }, [application.id, application.is_favorite]);
 
-  const handleStarToggle = () => {
-    const next = toggleStarredApplicationId(application.id);
+  const handleStarToggle = async () => {
+    const next = await toggleFavoriteApi(application.id, isStarred);
     setIsStarred(next);
-    showToast(next ? 'Marked as Dream Job ⭐️' : 'Removed from Dream Jobs', 'info');
+    onUpdate({ ...application, is_favorite: next });
+    showToast(next ? 'Starred application ⭐️' : 'Removed from Starred', 'info');
   };
 
   const statusOptions = [
@@ -67,6 +93,12 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
     { label: 'Offer', value: 'OFFER' },
     { label: 'Rejected', value: 'REJECTED' },
     { label: 'Withdrawn', value: 'WITHDRAWN' },
+  ];
+
+  const workModeOptions = [
+    { label: 'Remote', value: 'REMOTE' },
+    { label: 'Hybrid', value: 'HYBRID' },
+    { label: 'On-site', value: 'ONSITE' },
   ];
 
   const handleStatusQuickChange = async (newStatus: ApplicationStatus) => {
@@ -82,6 +114,22 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
     }
   };
 
+  const handleOpenEditModal = () => {
+    setCompanyName(application.company_name);
+    setRoleTitle(application.role_title);
+    setAppliedDate(new Date(application.applied_date).toISOString().split('T')[0]);
+    setStatus(application.status);
+    setWorkMode((application.work_mode as WorkMode) || 'REMOTE');
+    setLocation(application.location || '');
+    setSalaryMin(application.salary_min ? String(application.salary_min) : '');
+    setSalaryMax(application.salary_max ? String(application.salary_max) : '');
+    setJobDescription(application.job_description || '');
+    setContactName(application.contact_name || '');
+    setContactEmail(application.contact_email || '');
+    setJobPostingUrl(application.job_posting_url || '');
+    setIsEditModalOpen(true);
+  };
+
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -93,7 +141,14 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
           role_title: roleTitle.trim(),
           applied_date: appliedDate,
           status,
-          job_posting_url: jobPostingUrl.trim() || undefined,
+          work_mode: workMode,
+          location: location.trim() || null,
+          salary_min: salaryMin ? parseFloat(salaryMin) : null,
+          salary_max: salaryMax ? parseFloat(salaryMax) : null,
+          job_description: jobDescription.trim() || null,
+          contact_name: contactName.trim() || null,
+          contact_email: contactEmail.trim() || null,
+          job_posting_url: jobPostingUrl.trim() || null,
         }),
       });
       showToast('Application updated successfully', 'success');
@@ -157,20 +212,33 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
                   ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/60 text-amber-500'
                   : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400'
               }`}
-              title={isStarred ? 'Unstar Dream Job' : 'Star as Dream Job'}
+              title={isStarred ? 'Unstar Application' : 'Star Application'}
             >
               <Star className={`w-4 h-4 ${isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
             </button>
             {isStarred && (
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80">
-                ⭐️ Dream Job
+                ⭐️ Starred
               </span>
             )}
             <Badge status={application.status} className="text-xs px-2.5 py-1" />
           </div>
-          <p className="text-base text-slate-600 dark:text-slate-300 font-medium mt-1">
-            {application.role_title}
-          </p>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <p className="text-base text-slate-600 dark:text-slate-300 font-medium">
+              {application.role_title}
+            </p>
+            {application.work_mode && (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+                {application.work_mode}
+              </span>
+            )}
+            {application.location && (
+              <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>{application.location}</span>
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Action buttons */}
@@ -204,7 +272,7 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsEditModalOpen(true)}
+            onClick={handleOpenEditModal}
             title="Edit application"
           >
             <Edit2 className="w-3.5 h-3.5" />
@@ -223,7 +291,7 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
         </div>
       </div>
 
-      {/* Meta tags (Date, Job posting URL) */}
+      {/* Meta tags (Date, Job posting URL, Contacts) */}
       <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
         <div className="flex items-center gap-1.5">
           <Calendar className="w-4 h-4 text-slate-400" />
@@ -241,6 +309,24 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
             <span>Job Posting URL</span>
           </a>
         )}
+
+        {(application.salary_min || application.salary_max) && (
+          <div className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold">
+            <span>Target: </span>
+            <span>
+              {application.salary_min ? `$${Number(application.salary_min).toLocaleString()}` : ''}
+              {application.salary_min && application.salary_max ? ' - ' : ''}
+              {application.salary_max ? `$${Number(application.salary_max).toLocaleString()}` : ''}
+            </span>
+          </div>
+        )}
+
+        {application.contact_name && (
+          <div className="text-slate-600 dark:text-slate-300">
+            <span>Recruiter: <strong>{application.contact_name}</strong></span>
+            {application.contact_email && <span className="text-slate-400"> ({application.contact_email})</span>}
+          </div>
+        )}
       </div>
 
       {/* Edit Modal */}
@@ -248,39 +334,106 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         title="Edit Application"
+        maxWidth="lg"
       >
-        <form onSubmit={handleEditSubmit} className="space-y-4">
-          <Input
-            label="Company Name"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            required
-          />
-          <Input
-            label="Role Title"
-            value={roleTitle}
-            onChange={(e) => setRoleTitle(e.target.value)}
-            required
-          />
-          <Input
-            label="Applied Date"
-            type="date"
-            value={appliedDate}
-            onChange={(e) => setAppliedDate(e.target.value)}
-            required
-          />
-          <Select
-            label="Status"
-            options={statusOptions}
-            value={status}
-            onChange={(e) => setStatus(e.target.value as ApplicationStatus)}
-          />
-          <Input
-            label="Job Posting URL"
-            type="url"
-            value={jobPostingUrl}
-            onChange={(e) => setJobPostingUrl(e.target.value)}
-          />
+        <form onSubmit={handleEditSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Company Name"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              required
+            />
+            <Input
+              label="Role Title"
+              value={roleTitle}
+              onChange={(e) => setRoleTitle(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Input
+              label="Applied Date"
+              type="date"
+              value={appliedDate}
+              onChange={(e) => setAppliedDate(e.target.value)}
+              required
+            />
+            <Select
+              label="Status"
+              options={statusOptions}
+              value={status}
+              onChange={(e) => setStatus(e.target.value as ApplicationStatus)}
+            />
+            <Select
+              label="Work Mode"
+              options={workModeOptions}
+              value={workMode}
+              onChange={(e) => setWorkMode(e.target.value as WorkMode)}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Location"
+              placeholder="e.g. San Francisco, CA"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+            <Input
+              label="Job Posting URL"
+              type="url"
+              value={jobPostingUrl}
+              onChange={(e) => setJobPostingUrl(e.target.value)}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Salary Min ($)"
+              type="number"
+              value={salaryMin}
+              onChange={(e) => setSalaryMin(e.target.value)}
+              placeholder="e.g. 90000"
+            />
+            <Input
+              label="Salary Max ($)"
+              type="number"
+              value={salaryMax}
+              onChange={(e) => setSalaryMax(e.target.value)}
+              placeholder="e.g. 130000"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Recruiter Name"
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+              placeholder="e.g. Sarah Connor"
+            />
+            <Input
+              label="Recruiter Email"
+              type="email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              placeholder="e.g. recruiter@company.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Job Description
+            </label>
+            <textarea
+              rows={4}
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 font-mono focus:outline-none focus:ring-1 focus:ring-sky-500"
+              placeholder="Paste full job description for AI Resume Matcher..."
+            />
+          </div>
 
           <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>

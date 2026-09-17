@@ -11,6 +11,8 @@ import { NotesModule } from './notes/notes.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AiModule } from './ai/ai.module';
 
+import { OffersModule } from './offers/offers.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -22,6 +24,7 @@ import { AiModule } from './ai/ai.module';
     AuthModule,
     UsersModule,
     ApplicationsModule,
+    OffersModule,
     ResumesModule,
     InterviewsModule,
     NotesModule,

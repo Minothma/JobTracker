@@ -18,16 +18,28 @@ export class ApplicationsService {
       where.status = query.status;
     }
 
+    if (query.is_favorite !== undefined) {
+      where.is_favorite = query.is_favorite;
+    }
+
+    if (query.work_mode) {
+      where.work_mode = query.work_mode;
+    }
+
     if (query.search) {
       where.OR = [
         { company_name: { contains: query.search, mode: 'insensitive' } },
         { role_title: { contains: query.search, mode: 'insensitive' } },
+        { location: { contains: query.search, mode: 'insensitive' } },
       ];
     }
 
     return this.prisma.applications.findMany({
       where,
-      orderBy: { updated_at: 'desc' },
+      orderBy: [
+        { is_favorite: 'desc' },
+        { updated_at: 'desc' },
+      ],
       include: {
         resumes: {
           select: {
@@ -36,6 +48,7 @@ export class ApplicationsService {
             original_filename: true,
           },
         },
+        offers: true,
         _count: {
           select: {
             interviews: true,
@@ -62,6 +75,7 @@ export class ApplicationsService {
             uploaded_at: true,
           },
         },
+        offers: true,
         interviews: {
           orderBy: { scheduled_at: 'asc' },
         },
@@ -97,6 +111,16 @@ export class ApplicationsService {
         applied_date: new Date(dto.applied_date),
         job_posting_url: dto.job_posting_url || null,
         resume_id: dto.resume_id || null,
+        salary_min: dto.salary_min !== undefined ? dto.salary_min : null,
+        salary_max: dto.salary_max !== undefined ? dto.salary_max : null,
+        currency: dto.currency || 'USD',
+        work_mode: dto.work_mode || 'REMOTE',
+        location: dto.location || null,
+        job_description: dto.job_description || null,
+        is_favorite: dto.is_favorite || false,
+        contact_name: dto.contact_name || null,
+        contact_email: dto.contact_email || null,
+        rejection_reason: dto.rejection_reason || null,
       },
       include: {
         resumes: {
@@ -104,6 +128,13 @@ export class ApplicationsService {
             id: true,
             version_label: true,
             original_filename: true,
+          },
+        },
+        offers: true,
+        _count: {
+          select: {
+            interviews: true,
+            notes: true,
           },
         },
       },
@@ -131,6 +162,17 @@ export class ApplicationsService {
     if (dto.status !== undefined) data.status = dto.status;
     if (dto.applied_date !== undefined) data.applied_date = new Date(dto.applied_date);
     if (dto.job_posting_url !== undefined) data.job_posting_url = dto.job_posting_url;
+    if (dto.salary_min !== undefined) data.salary_min = dto.salary_min;
+    if (dto.salary_max !== undefined) data.salary_max = dto.salary_max;
+    if (dto.currency !== undefined) data.currency = dto.currency;
+    if (dto.work_mode !== undefined) data.work_mode = dto.work_mode;
+    if (dto.location !== undefined) data.location = dto.location;
+    if (dto.job_description !== undefined) data.job_description = dto.job_description;
+    if (dto.is_favorite !== undefined) data.is_favorite = dto.is_favorite;
+    if (dto.contact_name !== undefined) data.contact_name = dto.contact_name;
+    if (dto.contact_email !== undefined) data.contact_email = dto.contact_email;
+    if (dto.rejection_reason !== undefined) data.rejection_reason = dto.rejection_reason;
+
     if (dto.resume_id !== undefined) {
       if (dto.resume_id === null) {
         data.resumes = { disconnect: true };
@@ -150,6 +192,7 @@ export class ApplicationsService {
             original_filename: true,
           },
         },
+        offers: true,
         _count: {
           select: {
             interviews: true,
@@ -177,6 +220,7 @@ export class ApplicationsService {
         interviews: {
           orderBy: { scheduled_at: 'asc' },
         },
+        offers: true,
       },
       orderBy: { applied_date: 'asc' },
     });

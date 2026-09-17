@@ -3,30 +3,34 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  OfferPackage,
-  getAllOfferPackages,
+  fetchUserOffers,
   calculateTotalCompensation,
   formatCurrency,
   OFFERS_CHANGED_EVENT,
 } from '../../../lib/offers';
+import { OfferPackage } from '../../../lib/types';
 import {
   Award,
   Trophy,
-  DollarSign,
-  TrendingUp,
   Building2,
-  Calendar,
-  ExternalLink,
   Sparkles,
-  Layers,
   ArrowRight,
 } from 'lucide-react';
 
 export const OfferComparisonMatrix: React.FC = () => {
-  const [offersMap, setOffersMap] = useState<Record<string, OfferPackage>>({});
+  const [offers, setOffers] = useState<OfferPackage[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const loadOffers = () => {
-    setOffersMap(getAllOfferPackages());
+  const loadOffers = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchUserOffers();
+      setOffers(data || []);
+    } catch {
+      setOffers([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -43,12 +47,19 @@ export const OfferComparisonMatrix: React.FC = () => {
   }, []);
 
   const offersList = useMemo(() => {
-    const list = Object.values(offersMap);
-    // Sort descending by Total Compensation
-    return list.sort(
+    return [...offers].sort(
       (a, b) => calculateTotalCompensation(b) - calculateTotalCompensation(a),
     );
-  }, [offersMap]);
+  }, [offers]);
+
+  if (loading && offersList.length === 0) {
+    return (
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs text-center py-12 text-slate-400">
+        <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+        <p className="text-xs">Loading offer packages...</p>
+      </div>
+    );
+  }
 
   if (offersList.length === 0) {
     return (
@@ -101,12 +112,12 @@ export const OfferComparisonMatrix: React.FC = () => {
 
         {/* Top Offer Highlight Badge */}
         {topOffer && (
-          <div className="px-3.5 py-2 rounded-xl bg-linear-to-r from-amber-50 to-emerald-50 dark:from-amber-950/30 dark:to-emerald-950/30 border border-amber-200 dark:border-amber-800/60 flex items-center gap-2.5">
+          <div className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-50 to-emerald-50 dark:from-amber-950/30 dark:to-emerald-950/30 border border-amber-200 dark:border-amber-800/60 flex items-center gap-2.5">
             <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
             <div className="text-xs">
               <span className="text-slate-500 dark:text-slate-400">Top Offer: </span>
               <span className="font-bold text-slate-900 dark:text-white">
-                {topOffer.companyName}
+                {topOffer.applications?.company_name || 'Offer'}
               </span>{' '}
               <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
                 ({formatCurrency(maxTC, topOffer.currency)} TC)
@@ -132,13 +143,13 @@ export const OfferComparisonMatrix: React.FC = () => {
           </thead>
 
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-sm">
-            {offersList.map((offer, idx) => {
-              const tc = calculateTotalCompensation(offer);
+            {offersList.map((item, idx) => {
+              const tc = calculateTotalCompensation(item);
               const isTop = idx === 0;
 
               return (
                 <tr
-                  key={offer.applicationId}
+                  key={item.id || item.application_id}
                   className={`hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors ${
                     isTop ? 'bg-emerald-50/20 dark:bg-emerald-950/10' : ''
                   }`}
@@ -152,10 +163,10 @@ export const OfferComparisonMatrix: React.FC = () => {
                       <div>
                         <div className="flex items-center gap-1.5">
                           <Link
-                            href={`/applications/${offer.applicationId}`}
+                            href={`/applications/${item.application_id}`}
                             className="font-bold text-slate-900 dark:text-slate-100 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
                           >
-                            {offer.companyName}
+                            {item.applications?.company_name || 'Company'}
                           </Link>
                           {isTop && (
                             <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
@@ -163,7 +174,9 @@ export const OfferComparisonMatrix: React.FC = () => {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{offer.roleTitle}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {item.applications?.role_title || 'Role'}
+                        </p>
                       </div>
                     </div>
                   </td>
@@ -177,21 +190,21 @@ export const OfferComparisonMatrix: React.FC = () => {
                           : 'text-slate-900 dark:text-slate-100'
                       }`}
                     >
-                      {formatCurrency(tc, offer.currency)}
+                      {formatCurrency(tc, item.currency)}
                     </span>
                     <span className="text-[11px] text-slate-400 block">/ year</span>
                   </td>
 
                   {/* Base Salary */}
                   <td className="py-3.5 px-4 text-right text-slate-700 dark:text-slate-300 font-semibold text-xs">
-                    {formatCurrency(offer.baseSalary, offer.currency)}
+                    {formatCurrency(Number(item.base_salary), item.currency)}
                   </td>
 
                   {/* Bonus */}
                   <td className="py-3.5 px-4 text-right text-xs">
-                    {offer.bonus ? (
+                    {Number(item.bonus) > 0 ? (
                       <span className="font-semibold text-slate-700 dark:text-slate-300">
-                        {formatCurrency(offer.bonus, offer.currency)}
+                        {formatCurrency(Number(item.bonus), item.currency)}
                       </span>
                     ) : (
                       <span className="text-slate-400">—</span>
@@ -200,9 +213,9 @@ export const OfferComparisonMatrix: React.FC = () => {
 
                   {/* Equity */}
                   <td className="py-3.5 px-4 text-right text-xs">
-                    {offer.equity ? (
+                    {Number(item.equity) > 0 ? (
                       <span className="font-semibold text-slate-700 dark:text-slate-300">
-                        {formatCurrency(offer.equity, offer.currency)}
+                        {formatCurrency(Number(item.equity), item.currency)}
                       </span>
                     ) : (
                       <span className="text-slate-400">—</span>
@@ -213,26 +226,26 @@ export const OfferComparisonMatrix: React.FC = () => {
                   <td className="py-3.5 px-4 text-center">
                     <span
                       className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                        offer.workMode === 'REMOTE'
+                        item.work_mode === 'REMOTE'
                           ? 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
-                          : offer.workMode === 'HYBRID'
+                          : item.work_mode === 'HYBRID'
                           ? 'bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300 border border-violet-200 dark:border-violet-800'
                           : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
                       }`}
                     >
-                      {offer.workMode}
+                      {item.work_mode}
                     </span>
                   </td>
 
                   {/* Perks / Benefits */}
                   <td className="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-400 max-w-xs">
-                    {offer.benefitsSummary ? (
+                    {item.benefits_summary ? (
                       <p className="line-clamp-2 leading-relaxed text-[11px]">
-                        {offer.benefitsSummary}
+                        {item.benefits_summary}
                       </p>
-                    ) : offer.offerDeadline ? (
+                    ) : item.offer_deadline ? (
                       <span className="text-amber-600 dark:text-amber-400 text-[11px] font-medium">
-                        Deadline: {new Date(offer.offerDeadline).toLocaleDateString()}
+                        Deadline: {new Date(item.offer_deadline).toLocaleDateString()}
                       </span>
                     ) : (
                       <span className="text-slate-400">—</span>

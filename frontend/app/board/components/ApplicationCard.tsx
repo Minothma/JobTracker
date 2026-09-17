@@ -13,32 +13,41 @@ import {
   ExternalLink,
   GripVertical,
   Star,
+  MapPin,
+  Sparkles,
 } from 'lucide-react';
 import {
   isApplicationStarred,
-  toggleStarredApplicationId,
+  toggleFavoriteApi,
   STARRED_CHANGED_EVENT,
 } from '../../../lib/favorites';
+import { formatCurrency } from '../../../lib/offers';
 
 interface ApplicationCardProps {
   application: Application;
 }
 
 export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application }) => {
-  const [isStarred, setIsStarred] = useState<boolean>(false);
+  const [isStarred, setIsStarred] = useState<boolean>(
+    application.is_favorite !== undefined ? application.is_favorite : isApplicationStarred(application.id),
+  );
 
   useEffect(() => {
-    setIsStarred(isApplicationStarred(application.id));
+    setIsStarred(
+      application.is_favorite !== undefined ? application.is_favorite : isApplicationStarred(application.id),
+    );
 
-    const handleStarredChanged = () => {
-      setIsStarred(isApplicationStarred(application.id));
+    const handleStarredChanged = (e: any) => {
+      if (e.detail?.id === application.id) {
+        setIsStarred(e.detail.isStarred);
+      }
     };
 
     window.addEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
     return () => {
       window.removeEventListener(STARRED_CHANGED_EVENT, handleStarredChanged);
     };
-  }, [application.id]);
+  }, [application.id, application.is_favorite]);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: application.id,
@@ -51,10 +60,10 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application })
     cursor: 'grab',
   };
 
-  const handleStarClick = (e: React.MouseEvent) => {
+  const handleStarClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    const next = toggleStarredApplicationId(application.id);
+    const next = await toggleFavoriteApi(application.id, isStarred);
     setIsStarred(next);
   };
 
@@ -88,9 +97,9 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application })
             {isStarred && (
               <span
                 className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0"
-                title="Dream Company"
+                title="Starred / Priority Application"
               >
-                Dream
+                Starred
               </span>
             )}
           </div>
@@ -109,7 +118,7 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application })
                 ? 'text-amber-400 hover:text-amber-500'
                 : 'text-slate-300 hover:text-amber-400 opacity-0 group-hover:opacity-100 focus:opacity-100'
             }`}
-            title={isStarred ? 'Unstar Dream Job' : 'Star as Dream Job'}
+            title={isStarred ? 'Unstar Application' : 'Star Application'}
           >
             <Star className={`w-4 h-4 ${isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
           </button>
@@ -125,8 +134,41 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({ application })
         </div>
       </div>
 
+      {/* Badges: Work Mode & Location */}
+      {(application.work_mode || application.location || application.offers) && (
+        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+          {application.work_mode && (
+            <span
+              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                application.work_mode === 'REMOTE'
+                  ? 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
+                  : application.work_mode === 'HYBRID'
+                  ? 'bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300'
+                  : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+              }`}
+            >
+              {application.work_mode}
+            </span>
+          )}
+
+          {application.location && (
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-0.5">
+              <MapPin className="w-3 h-3" />
+              <span className="truncate max-w-[110px]">{application.location}</span>
+            </span>
+          )}
+
+          {application.offers && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 ml-auto flex items-center gap-1">
+              <Sparkles className="w-2.5 h-2.5" />
+              <span>{formatCurrency(Number(application.offers.base_salary), application.offers.currency)}</span>
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Details & Tags */}
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+      <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
         <div className="flex items-center gap-1">
           <Calendar className="w-3.5 h-3.5" />
           <span>{formattedDate}</span>
