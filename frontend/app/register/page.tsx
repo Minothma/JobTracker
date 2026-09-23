@@ -132,9 +132,9 @@ export default function RegisterPage() {
         </div>
 
         {/* Right Side: Registration Form (45% width) */}
-        <div className="lg:col-span-5 p-8 sm:p-10 flex flex-col justify-between bg-[#121214]">
-          <div>
-            <div className="space-y-1 mb-6">
+        <div className="lg:col-span-5 p-8 sm:p-10 flex flex-col items-center justify-center bg-[#121214] min-h-full">
+          <div className="w-full max-w-sm space-y-6 my-auto">
+            <div className="space-y-1">
               <h2 className="text-lg font-semibold text-[#FAFAFA] tracking-tight">
                 Create Account
               </h2>
@@ -144,7 +144,7 @@ export default function RegisterPage() {
             </div>
 
             {error && (
-              <div className="mb-5 p-3 rounded-md bg-rose-950/30 border border-rose-900/60 text-rose-300 text-xs flex items-center gap-2">
+              <div className="p-3 rounded-md bg-rose-950/30 border border-rose-900/60 text-rose-300 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                 <span>{error}</span>
               </div>
@@ -251,17 +251,17 @@ export default function RegisterPage() {
                 </button>
               </div>
             </form>
-          </div>
 
-          {/* Bottom Switch to Login */}
-          <div className="mt-8 pt-5 border-t border-[#27272A] text-center text-xs text-[#A1A1AA]">
-            Already have an account?{' '}
-            <Link
-              href="/login"
-              className="text-indigo-400 hover:text-indigo-300 font-medium"
-            >
-              Sign in
-            </Link>
+            {/* Bottom Switch to Login */}
+            <div className="pt-4 border-t border-[#27272A] text-center text-xs text-[#A1A1AA]">
+              Already have an account?{' '}
+              <Link
+                href="/login"
+                className="text-indigo-400 hover:text-indigo-300 font-medium"
+              >
+                Sign in
+              </Link>
+            </div>
           </div>
         </div>
 
