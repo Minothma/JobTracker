@@ -155,7 +155,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-start min-h-[600px] overflow-x-auto pb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3.5 items-start min-h-[600px] overflow-x-auto pb-6">
         {COLUMNS.map((col) => {
           const columnApps = applications.filter((app) => app.status === col.status);
           return (
@@ -170,7 +170,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       </div>
 
       {/* Floating Drag Overlay */}
-      <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+      <DragOverlay dropAnimation={{ duration: 150, easing: 'cubic-bezier(0.2, 0, 0, 1)' }}>
         {activeApp ? <ApplicationCard application={activeApp} isOverlay /> : null}
       </DragOverlay>
     </DndContext>

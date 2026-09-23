@@ -10,7 +10,7 @@ import { apiFetch } from '../../../../lib/api-client';
 import { useToast } from '../../../../components/ui/Toast';
 import { generateGoogleCalendarUrl, downloadIcsFile } from '../../../../lib/calendar';
 import { AiInterviewPrepModal } from '../../../../components/AiInterviewPrepModal';
-import { Video, Plus, Calendar, Trash2, ExternalLink, Download, Brain, Sparkles } from 'lucide-react';
+import { Video, Plus, Calendar, Trash2, ExternalLink, Download, Brain } from 'lucide-react';
 
 interface InterviewSectionProps {
   applicationId: string;
@@ -56,7 +56,7 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
       });
 
       onInterviewsChange([...interviews, newInterview]);
-      showToast('Interview round scheduled!', 'success');
+      showToast('Interview round scheduled', 'success');
       setIsAddModalOpen(false);
       setRoundType('Technical Interview');
       setScheduledAt('');
@@ -104,27 +104,26 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
   ];
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
+    <div className="bg-[#121214] border border-[#27272A] rounded-lg p-5 space-y-4 text-[#FAFAFA]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+          <div className="p-1.5 rounded-md bg-[#18181B] text-amber-400 border border-[#27272A]">
             <Video className="w-4 h-4" />
           </div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Interview Rounds</h2>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+          <h2 className="text-sm font-semibold text-[#FAFAFA]">Interview Rounds</h2>
+          <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#18181B] border border-[#27272A] text-[#71717A]">
             {interviews.length}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 font-mono text-xs">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsAiPrepModalOpen(true)}
-            className="border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50"
             title="Practice realistic questions tailored for this role"
           >
-            <Brain className="w-3.5 h-3.5 mr-1 text-purple-500" />
+            <Brain className="w-3.5 h-3.5 mr-1 text-indigo-400" />
             AI Mock Prep
           </Button>
 
@@ -136,8 +135,8 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
       </div>
 
       {interviews.length === 0 ? (
-        <div className="py-8 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-400">
-          No interview rounds scheduled yet. Click &quot;Schedule Round&quot; to add one.
+        <div className="py-6 text-center border border-dashed border-[#27272A] rounded-lg text-xs font-mono text-[#52525B]">
+          No interview rounds scheduled yet.
         </div>
       ) : (
         <div className="space-y-3">
@@ -145,7 +144,6 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
             const formattedDate = new Date(round.scheduled_at).toLocaleString('en-US', {
               month: 'short',
               day: 'numeric',
-              year: 'numeric',
               hour: 'numeric',
               minute: '2-digit',
             });
@@ -163,24 +161,24 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
             return (
               <div
                 key={round.id}
-                className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col gap-3"
+                className="p-3.5 rounded-md border border-[#27272A] bg-[#0E0E10] flex flex-col gap-2.5"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                  <div className="space-y-1.5 flex-1">
+                  <div className="space-y-1 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                      <h3 className="font-medium text-sm text-[#FAFAFA]">
                         {round.round_type}
                       </h3>
                       <Badge status={round.outcome || 'PENDING'} />
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <div className="flex items-center gap-1 text-xs font-mono text-[#71717A]">
+                      <Calendar className="w-3 h-3 text-[#52525B]" />
                       <span>{formattedDate}</span>
                     </div>
 
                     {round.notes && (
-                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 bg-white dark:bg-slate-900/60 p-2.5 rounded border border-slate-200/60 dark:border-slate-800 whitespace-pre-wrap">
+                      <p className="text-xs text-[#A1A1AA] mt-1.5 bg-[#0A0A0B] p-2.5 rounded border border-[#27272A] font-mono whitespace-pre-wrap">
                         {round.notes}
                       </p>
                     )}
@@ -190,7 +188,7 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
                     <select
                       value={round.outcome || 'PENDING'}
                       onChange={(e) => handleOutcomeChange(round.id, e.target.value)}
-                      className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-slate-700 dark:text-slate-200 focus:outline-none"
+                      className="text-xs font-mono bg-[#0A0A0B] border border-[#27272A] rounded px-2 py-1 text-[#FAFAFA] focus:outline-none focus:border-indigo-500 cursor-pointer"
                     >
                       {outcomeOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -201,19 +199,18 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
 
                     <button
                       onClick={() => handleDeleteRound(round.id)}
-                      className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 rounded"
+                      className="text-[#52525B] hover:text-rose-400 p-1 rounded transition-colors"
                       title="Delete round"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
 
                 {/* Calendar Sync Action Toolbar */}
-                <div className="pt-2.5 border-t border-slate-200/60 dark:border-slate-800/80 flex items-center justify-between flex-wrap gap-2 text-xs">
-                  <span className="text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" />
-                    Calendar Sync:
+                <div className="pt-2 border-t border-[#27272A] flex items-center justify-between flex-wrap gap-2 text-xs font-mono">
+                  <span className="text-[#52525B]">
+                    sync:
                   </span>
 
                   <div className="flex items-center gap-2">
@@ -221,11 +218,11 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
                       href={gcalUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/50 border border-slate-200 dark:border-slate-700 text-sky-600 dark:text-sky-400 font-medium transition-colors"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#18181B] hover:bg-[#27272A] border border-[#27272A] text-indigo-400 transition-colors"
                       title="Add to Google Calendar"
                     >
-                      <span>Google Calendar</span>
-                      <ExternalLink className="w-3 h-3" />
+                      <span>google cal</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
                     </a>
 
                     <button
@@ -234,11 +231,11 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
                         downloadIcsFile(calendarEvent);
                         showToast('Downloaded .ics calendar invite', 'success');
                       }}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium transition-colors"
-                      title="Download .ics file for Outlook, Apple Calendar"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#18181B] hover:bg-[#27272A] border border-[#27272A] text-[#A1A1AA] hover:text-[#FAFAFA] transition-colors"
+                      title="Download .ics file for Outlook / Apple Calendar"
                     >
-                      <Download className="w-3 h-3" />
-                      <span>.ICS file</span>
+                      <Download className="w-2.5 h-2.5" />
+                      <span>.ics</span>
                     </button>
                   </div>
                 </div>
@@ -254,10 +251,10 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
         onClose={() => setIsAddModalOpen(false)}
         title="Schedule Interview Round"
       >
-        <form onSubmit={handleAddRound} className="space-y-4">
+        <form onSubmit={handleAddRound} className="space-y-3.5">
           <Input
             label="Round Type *"
-            placeholder="e.g. Phone Screen, Coding Round 1, System Design"
+            placeholder="e.g. Technical Screen, System Design"
             value={roundType}
             onChange={(e) => setRoundType(e.target.value)}
             required
@@ -278,24 +275,24 @@ export const InterviewSection: React.FC<InterviewSectionProps> = ({
             onChange={(e) => setOutcome(e.target.value)}
           />
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Prep Notes & Feedback
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-[#D4D4D8]">
+              Prep Notes & Links
             </label>
             <textarea
               rows={3}
-              placeholder="Key concepts to review, interview link, interviewer names..."
+              placeholder="Key concepts, video link, interviewer names..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-3 py-2 text-xs rounded bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500 font-mono"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
+          <div className="flex justify-end gap-2.5 pt-2 border-t border-[#27272A]">
+            <Button type="button" variant="outline" size="sm" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" isLoading={isSubmitting}>
+            <Button type="submit" size="sm" isLoading={isSubmitting}>
               Schedule
             </Button>
           </div>

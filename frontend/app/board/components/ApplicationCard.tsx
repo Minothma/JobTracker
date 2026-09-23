@@ -14,7 +14,8 @@ import {
   GripVertical,
   Star,
   MapPin,
-  Sparkles,
+  Banknote,
+  ArrowRight,
 } from 'lucide-react';
 import {
   isApplicationStarred,
@@ -69,7 +70,7 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition,
-    opacity: isDragging ? 0.3 : 1,
+    opacity: isDragging ? 0.25 : 1,
   };
 
   const handleStarClick = async (e: React.MouseEvent) => {
@@ -82,43 +83,43 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
   const formattedDate = new Date(application.applied_date).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
   });
 
   return (
     <div
       ref={isOverlay ? undefined : setNodeRef}
       style={isOverlay ? undefined : style}
-      className={`group relative bg-white dark:bg-slate-900 border rounded-xl p-4 transition-all ${
+      className={`group relative rounded-lg p-3.5 transition-all text-[#FAFAFA] ${
         isOverlay
-          ? 'shadow-2xl ring-2 ring-sky-500/80 border-sky-400 rotate-2 scale-105 cursor-grabbing bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs'
+          ? 'bg-[#18181B] border border-indigo-500 shadow-2xl scale-[1.02] cursor-grabbing'
           : isDragging
-          ? 'ring-2 ring-sky-400 border-sky-300 shadow-sm'
+          ? 'bg-[#121214] border border-indigo-500/80 shadow-sm'
           : isStarred
-          ? 'border-amber-300 dark:border-amber-600/70 ring-1 ring-amber-400/20 bg-linear-to-b from-amber-50/20 to-transparent dark:from-amber-950/10 shadow-xs hover:shadow-md'
-          : 'border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md'
+          ? 'bg-[#15130D] border border-amber-500/40 hover:border-amber-500/60 shadow-xs'
+          : 'bg-[#121214] border border-[#27272A] hover:border-[#3F3F46] hover:bg-[#151518] shadow-xs'
       }`}
     >
+      {/* Card Header: Company, Role & Actions */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <Link
               href={`/applications/${application.id}`}
-              className="font-semibold text-slate-900 dark:text-slate-100 hover:text-sky-600 dark:hover:text-sky-400 block truncate text-sm"
+              className="font-medium text-sm text-[#FAFAFA] hover:text-indigo-400 block truncate transition-colors"
               onClick={(e) => isOverlay && e.preventDefault()}
             >
               {application.company_name}
             </Link>
             {isStarred && (
               <span
-                className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0"
+                className="text-[9px] font-mono font-medium px-1 py-0.2 rounded bg-amber-950/60 text-amber-400 border border-amber-800/60 shrink-0"
                 title="Starred Application"
               >
-                Starred
+                starred
               </span>
             )}
           </div>
-          <p className="text-xs font-medium text-slate-600 dark:text-slate-400 truncate mt-0.5">
+          <p className="text-xs text-[#A1A1AA] truncate mt-0.5">
             {application.role_title}
           </p>
         </div>
@@ -130,64 +131,64 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
             onClick={handleStarClick}
             className={`p-1 rounded transition-colors ${
               isStarred
-                ? 'text-amber-400 hover:text-amber-500'
-                : 'text-slate-300 hover:text-amber-400 opacity-0 group-hover:opacity-100 focus:opacity-100'
+                ? 'text-amber-400 hover:text-amber-300'
+                : 'text-[#52525B] hover:text-amber-400 opacity-0 group-hover:opacity-100 focus:opacity-100'
             }`}
             title={isStarred ? 'Unstar Application' : 'Star Application'}
           >
-            <Star className={`w-4 h-4 ${isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
+            <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
           </button>
 
           {!isOverlay && (
             <div
               {...listeners}
               {...attributes}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 -mr-1 cursor-grab active:cursor-grabbing"
-              title="Drag to reorder or change column"
+              className="text-[#52525B] hover:text-[#FAFAFA] p-1 -mr-1 cursor-grab active:cursor-grabbing"
+              title="Drag card"
             >
-              <GripVertical className="w-4 h-4" />
+              <GripVertical className="w-3.5 h-3.5" />
             </div>
           )}
         </div>
       </div>
 
-      {/* Badges: Work Mode & Location */}
+      {/* Badges: Work Mode, Location, Salary */}
       {(application.work_mode || application.location || application.offers) && (
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
           {application.work_mode && (
             <span
-              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+              className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
                 application.work_mode === 'REMOTE'
-                  ? 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
+                  ? 'bg-[#18181B] text-[#A1A1AA] border-[#27272A]'
                   : application.work_mode === 'HYBRID'
-                  ? 'bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300'
-                  : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                  ? 'bg-[#18181B] text-[#A1A1AA] border-[#27272A]'
+                  : 'bg-[#18181B] text-[#A1A1AA] border-[#27272A]'
               }`}
             >
-              {application.work_mode}
+              {application.work_mode.toLowerCase()}
             </span>
           )}
 
           {application.location && (
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-0.5">
-              <MapPin className="w-3 h-3" />
-              <span className="truncate max-w-[110px]">{application.location}</span>
+            <span className="text-[10px] text-[#71717A] flex items-center gap-0.5 font-mono">
+              <MapPin className="w-3 h-3 text-[#52525B]" />
+              <span className="truncate max-w-[100px]">{application.location}</span>
             </span>
           )}
 
           {application.offers && (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 ml-auto flex items-center gap-1">
-              <Sparkles className="w-2.5 h-2.5" />
+            <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800/60 ml-auto flex items-center gap-1">
+              <Banknote className="w-3 h-3" />
               <span>{formatCurrency(Number(application.offers.base_salary), application.offers.currency)}</span>
             </span>
           )}
         </div>
       )}
 
-      {/* Details & Tags */}
-      <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+      {/* Details & Resume Tag */}
+      <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-[#71717A] font-mono">
         <div className="flex items-center gap-1">
-          <Calendar className="w-3.5 h-3.5" />
+          <Calendar className="w-3 h-3 text-[#52525B]" />
           <span>{formattedDate}</span>
         </div>
 
@@ -197,45 +198,46 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-0.5 text-sky-600 hover:underline dark:text-sky-400"
+            className="flex items-center gap-0.5 text-indigo-400 hover:text-indigo-300 transition-colors"
             title="Open job posting"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span>Posting</span>
+            <ExternalLink className="w-3 h-3" />
+            <span>link</span>
           </a>
         )}
 
         {application.resumes && (
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[11px] text-slate-600 dark:text-slate-300">
-            <FileText className="w-3 h-3 text-sky-500" />
-            <span className="truncate max-w-[90px]">{application.resumes.version_label}</span>
+          <div className="flex items-center gap-1 bg-[#18181B] border border-[#27272A] px-1.5 py-0.5 rounded text-[10px] text-[#A1A1AA]">
+            <FileText className="w-2.5 h-2.5 text-indigo-400" />
+            <span className="truncate max-w-[85px]">{application.resumes.version_label}</span>
           </div>
         )}
       </div>
 
-      {/* Stats footer (Interviews count & Notes count) */}
-      <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
+      {/* Stats Footer (Interviews count & Notes count) */}
+      <div className="mt-3 pt-2.5 border-t border-[#27272A] flex items-center justify-between text-xs text-[#71717A] font-mono">
         <div className="flex items-center gap-3">
           {application._count?.interviews ? (
-            <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
-              <Video className="w-3.5 h-3.5" />
-              {application._count.interviews} {application._count.interviews === 1 ? 'round' : 'rounds'}
+            <span className="flex items-center gap-1 text-amber-400 font-medium">
+              <Video className="w-3 h-3" />
+              <span>{application._count.interviews} {application._count.interviews === 1 ? 'round' : 'rounds'}</span>
             </span>
           ) : null}
 
           {application._count?.notes ? (
-            <span className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
-              <MessageSquare className="w-3.5 h-3.5" />
-              {application._count.notes}
+            <span className="flex items-center gap-1 text-[#A1A1AA]">
+              <MessageSquare className="w-3 h-3 text-[#52525B]" />
+              <span>{application._count.notes}</span>
             </span>
           ) : null}
         </div>
 
         <Link
           href={`/applications/${application.id}`}
-          className="text-xs text-sky-600 dark:text-sky-400 hover:underline font-medium ml-auto"
+          className="text-xs text-[#A1A1AA] hover:text-[#FAFAFA] font-medium ml-auto flex items-center gap-1 transition-colors"
         >
-          View &rarr;
+          <span>view</span>
+          <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
     </div>

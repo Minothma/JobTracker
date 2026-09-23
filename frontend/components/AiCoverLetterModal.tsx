@@ -24,7 +24,6 @@ import {
   Eye,
   RefreshCw,
   Clock,
-  Briefcase,
 } from 'lucide-react';
 
 interface AiCoverLetterModalProps {
@@ -71,7 +70,6 @@ export const AiCoverLetterModal: React.FC<AiCoverLetterModalProps> = ({
       setJobDescription(initialJobDescription);
       setSelectedResumeId(initialResumeId);
 
-      // Fetch available resumes
       setLoadingResumes(true);
       apiFetch<Resume[]>('/resumes')
         .then((data) => {
@@ -87,7 +85,7 @@ export const AiCoverLetterModal: React.FC<AiCoverLetterModalProps> = ({
 
   const handleGenerate = async () => {
     if (!companyName.trim() || !roleTitle.trim()) {
-      showToast('Please specify both company name and role title', 'error');
+      showToast('Please specify company name and role title', 'error');
       return;
     }
 
@@ -112,12 +110,7 @@ export const AiCoverLetterModal: React.FC<AiCoverLetterModalProps> = ({
       setResult(res);
       setEditableContent(res.content);
       setIsEditing(false);
-      showToast(
-        format === 'LINKEDIN_INMAIL_PITCH'
-          ? 'LinkedIn InMail pitch generated successfully!'
-          : 'Tailored cover letter generated successfully!',
-        'success',
-      );
+      showToast('Generated application content', 'success');
     } catch (err: any) {
       showToast(err.message || 'Failed to generate cover letter', 'error');
     } finally {
@@ -131,7 +124,7 @@ export const AiCoverLetterModal: React.FC<AiCoverLetterModalProps> = ({
 
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
-    showToast('Copied text to clipboard!', 'success');
+    showToast('Copied to clipboard', 'success');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -139,7 +132,7 @@ export const AiCoverLetterModal: React.FC<AiCoverLetterModalProps> = ({
     const textToDownload = isEditing ? editableContent : result?.content;
     if (!textToDownload) return;
 
-    const filename = `${companyName.toLowerCase().replace(/\s+/g, '-')}-${roleTitle.toLowerCase().replace(/\s+/g, '-')}-${format === 'LINKEDIN_INMAIL_PITCH' ? 'inmail-pitch' : 'cover-letter'}.${fileExt}`;
+    const filename = `${companyName.toLowerCase().replace(/\s+/g, '-')}-${roleTitle.toLowerCase().replace(/\s+/g, '-')}-${format === 'LINKEDIN_INMAIL_PITCH' ? 'inmail' : 'cover-letter'}.${fileExt}`;
     const blob = new Blob([textToDownload], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -156,47 +149,42 @@ export const AiCoverLetterModal: React.FC<AiCoverLetterModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="AI Cover Letter & InMail Pitch Generator"
+      title="AI Cover Letter & InMail Pitch"
       maxWidth="2xl"
     >
-      <div className="space-y-5">
-        {/* Subtitle */}
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Synthesize high-converting job applications and recruiter pitches tailored directly to your experience and target role.
-        </p>
-
+      <div className="space-y-4 text-[#FAFAFA]">
         {/* Input Parameters Box */}
-        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4">
+        <div className="p-3.5 rounded-lg bg-[#0E0E10] border border-[#27272A] space-y-3.5">
           {/* Format Selector Pills */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5 text-sky-500" />
-              <span>Generation Format</span>
+            <label className="block text-xs font-medium text-[#D4D4D8] mb-1.5 flex items-center gap-1.5 font-mono">
+              <Sliders className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Format</span>
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 font-mono text-xs">
               <button
                 type="button"
                 onClick={() => setFormat('FULL_COVER_LETTER')}
-                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold border transition-all ${
+                className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded text-xs transition-colors ${
                   format === 'FULL_COVER_LETTER'
-                    ? 'bg-sky-600 text-white border-sky-600 shadow-sm'
-                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-sky-500'
+                    ? 'bg-[#27272A] text-[#FAFAFA] border border-[#3F3F46]'
+                    : 'bg-[#0A0A0B] text-[#71717A] border border-[#27272A] hover:text-[#FAFAFA]'
                 }`}
               >
                 <FileText className="w-3.5 h-3.5" />
-                <span>Full Cover Letter (3-4 ¶)</span>
+                <span>Full Cover Letter</span>
               </button>
               <button
                 type="button"
                 onClick={() => setFormat('LINKEDIN_INMAIL_PITCH')}
-                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold border transition-all ${
+                className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded text-xs transition-colors ${
                   format === 'LINKEDIN_INMAIL_PITCH'
-                    ? 'bg-sky-600 text-white border-sky-600 shadow-sm'
-                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-sky-500'
+                    ? 'bg-[#27272A] text-[#FAFAFA] border border-[#3F3F46]'
+                    : 'bg-[#0A0A0B] text-[#71717A] border border-[#27272A] hover:text-[#FAFAFA]'
                 }`}
               >
                 <Send className="w-3.5 h-3.5" />
-                <span>LinkedIn InMail Pitch (&lt;160w)</span>
+                <span>LinkedIn InMail (&lt;160w)</span>
               </button>
             </div>
           </div>
@@ -204,97 +192,95 @@ export const AiCoverLetterModal: React.FC<AiCoverLetterModalProps> = ({
           {/* Company & Role Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-[#D4D4D8] mb-1">
                 Company Name *
               </label>
               <input
                 type="text"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="e.g. Stripe, Google, Linear"
-                className="w-full text-xs px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                placeholder="e.g. Stripe"
+                className="w-full text-xs px-2.5 py-1.5 rounded bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-[#D4D4D8] mb-1">
                 Role Title *
               </label>
               <input
                 type="text"
                 value={roleTitle}
                 onChange={(e) => setRoleTitle(e.target.value)}
-                placeholder="e.g. Senior Frontend Engineer"
-                className="w-full text-xs px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                placeholder="e.g. Full Stack Engineer"
+                className="w-full text-xs px-2.5 py-1.5 rounded bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500"
               />
             </div>
           </div>
 
           {/* Resume & Tone Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono text-xs">
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Source Resume Text
+              <label className="block text-xs font-medium text-[#D4D4D8] mb-1 font-sans">
+                Context Resume
               </label>
               <select
                 value={selectedResumeId}
                 onChange={(e) => setSelectedResumeId(e.target.value)}
                 disabled={loadingResumes}
-                className="w-full text-xs px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full text-xs px-2.5 py-1.5 rounded bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] focus:outline-none focus:border-indigo-500"
               >
-                <option value="">Default Profile Background</option>
+                <option value="">Default Profile</option>
                 {resumes.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.version_label} ({r.original_filename})
+                    {r.version_label}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Writing Tone
+              <label className="block text-xs font-medium text-[#D4D4D8] mb-1 font-sans">
+                Tone
               </label>
               <select
                 value={tone}
                 onChange={(e) => setTone(e.target.value as CoverLetterTone)}
-                className="w-full text-xs px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full text-xs px-2.5 py-1.5 rounded bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] focus:outline-none focus:border-indigo-500"
               >
-                <option value="PROFESSIONAL">Professional & Balanced</option>
-                <option value="ENTHUSIASTIC">Enthusiastic & High-Energy</option>
-                <option value="CONFIDENT">Confident & Direct</option>
+                <option value="PROFESSIONAL">Professional & Direct</option>
+                <option value="ENTHUSIASTIC">Warm & Enthusiastic</option>
+                <option value="CONFIDENT">Confident & Strategic</option>
                 <option value="CONCISE">Concise & Metric-Driven</option>
               </select>
             </div>
           </div>
 
-          {/* Key Achievements / Talking Points */}
+          {/* Key Achievements */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Key Achievements to Highlight (Optional)
+            <label className="block text-xs font-medium text-[#D4D4D8] mb-1">
+              Key Talking Points / Metrics (Optional)
             </label>
             <input
               type="text"
               value={keyAchievements}
               onChange={(e) => setKeyAchievements(e.target.value)}
-              placeholder="e.g. Scaled API to 10M req/day, reduced AWS costs by 28%"
-              className="w-full text-xs px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              placeholder="e.g. Scaled database to 10M req/day, built Next.js frontend from scratch"
+              className="w-full text-xs px-2.5 py-1.5 rounded bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500 font-mono"
             />
           </div>
 
-          {/* Generate Button */}
           <Button
-            variant="primary"
             onClick={handleGenerate}
             disabled={isGenerating || !companyName.trim() || !roleTitle.trim()}
-            className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-semibold text-xs shadow-md"
+            className="w-full text-xs py-2"
           >
             {isGenerating ? (
               <>
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>Crafting Tailored Application with AI...</span>
+                <RefreshCw className="w-3 h-3 animate-spin mr-1.5" />
+                <span>Generating...</span>
               </>
             ) : (
               <>
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
                 <span>
                   Generate {format === 'LINKEDIN_INMAIL_PITCH' ? 'InMail Pitch' : 'Cover Letter'}
                 </span>
@@ -305,80 +291,61 @@ export const AiCoverLetterModal: React.FC<AiCoverLetterModalProps> = ({
 
         {/* Generated Output Preview Section */}
         {result && (
-          <div className="space-y-3 animate-in fade-in slide-in-from-bottom-3 duration-200">
+          <div className="space-y-3 animate-in fade-in duration-200">
             {/* Metadata Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60">
-              <div className="flex items-center gap-3 text-xs text-sky-800 dark:text-sky-300">
-                <span className="flex items-center gap-1 font-semibold">
-                  <FileText className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+            <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-md bg-[#0E0E10] border border-[#27272A] font-mono text-xs text-[#71717A]">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1 text-[#FAFAFA]">
+                  <FileText className="w-3.5 h-3.5 text-indigo-400" />
                   {result.word_count} words
                 </span>
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-                  {result.estimated_reading_minutes} min read
-                </span>
-                <span className="hidden sm:inline-block px-2 py-0.5 rounded text-[11px] bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 font-medium">
-                  {result.generated_with}
+                  <Clock className="w-3.5 h-3.5 text-[#52525B]" />
+                  {result.estimated_reading_minutes}m read
                 </span>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => setIsEditing((prev) => !prev)}
-                  className="px-2 py-1 rounded text-xs text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-1 transition-colors"
-                  title={isEditing ? 'View Preview' : 'Edit Text'}
+                  className="px-2 py-0.5 rounded text-xs text-[#71717A] hover:text-[#FAFAFA] hover:bg-[#18181B] border border-[#27272A] flex items-center gap-1 transition-colors"
                 >
                   {isEditing ? <Eye className="w-3 h-3" /> : <Edit3 className="w-3 h-3" />}
-                  <span>{isEditing ? 'Preview' : 'Edit'}</span>
+                  <span>{isEditing ? 'preview' : 'edit'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="px-2.5 py-1 rounded text-xs font-semibold bg-sky-600 text-white hover:bg-sky-700 flex items-center gap-1 transition-colors shadow-sm"
+                  className="px-2 py-0.5 rounded text-xs bg-indigo-600 text-white hover:bg-indigo-500 flex items-center gap-1 transition-colors"
                 >
                   {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                  <span>{copied ? 'Copied' : 'Copy'}</span>
+                  <span>{copied ? 'copied' : 'copy'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleDownload('md')}
-                  className="p-1 rounded text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                  className="p-1 rounded text-[#71717A] hover:text-[#FAFAFA] hover:bg-[#18181B] border border-[#27272A]"
                   title="Download Markdown (.md)"
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  <Download className="w-3 h-3" />
                 </button>
               </div>
             </div>
 
-            {/* Key Selling Points Pills */}
-            {result.key_selling_points && result.key_selling_points.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {result.key_selling_points.map((pt, idx) => (
-                  <span
-                    key={idx}
-                    className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
-                  >
-                    ✓ {pt}
-                  </span>
-                ))}
-              </div>
-            )}
-
             {/* Content Area */}
-            <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 min-h-[160px] max-h-[340px] overflow-y-auto">
+            <div className="p-3.5 rounded-lg bg-[#0E0E10] border border-[#27272A] min-h-[140px] max-h-[300px] overflow-y-auto">
               {isEditing ? (
                 <textarea
                   value={editableContent}
                   onChange={(e) => setEditableContent(e.target.value)}
-                  rows={10}
-                  className="w-full text-xs font-mono p-2 rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                  rows={8}
+                  className="w-full text-xs font-mono p-2 rounded bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] focus:outline-none focus:border-indigo-500"
                 />
               ) : (
-                <div className="prose prose-xs dark:prose-invert max-w-none whitespace-pre-wrap text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans">
+                <div className="whitespace-pre-wrap text-xs text-[#FAFAFA] leading-relaxed font-sans">
                   {editableContent || result.content}
                 </div>
               )}

@@ -30,7 +30,6 @@ import {
 import {
   isApplicationStarred,
   toggleFavoriteApi,
-  toggleStarredApplicationId,
   STARRED_CHANGED_EVENT,
 } from '../../../lib/favorites';
 
@@ -61,7 +60,6 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
   const [isBulkProcessing, setIsBulkProcessing] = useState<boolean>(false);
   const [starredChangeCounter, setStarredChangeCounter] = useState<number>(0);
 
-  // Sync starred changes across components
   React.useEffect(() => {
     const handleStarredChanged = () => {
       setStarredChangeCounter((prev) => prev + 1);
@@ -283,29 +281,29 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
 
   const renderSortIcon = (field: SortField) => {
     if (sortField !== field) {
-      return <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 opacity-60" />;
+      return <ArrowUpDown className="w-3 h-3 text-[#52525B]" />;
     }
     return sortAsc ? (
-      <ArrowUp className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+      <ArrowUp className="w-3 h-3 text-indigo-400" />
     ) : (
-      <ArrowDown className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+      <ArrowDown className="w-3 h-3 text-indigo-400" />
     );
   };
 
   return (
-    <div className="space-y-4 relative">
+    <div className="space-y-3 relative text-[#FAFAFA]">
       {/* Filter Pills Bar */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 font-mono text-xs">
         <button
           onClick={() => setSelectedStatusFilter('ALL')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+          className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1.5 ${
             selectedStatusFilter === 'ALL'
-              ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs'
-              : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+              ? 'bg-[#27272A] text-[#FAFAFA] border border-[#3F3F46]'
+              : 'bg-[#121214] border border-[#27272A] text-[#A1A1AA] hover:bg-[#18181B]'
           }`}
         >
-          <span>All</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900">
+          <span>all</span>
+          <span className="text-[10px] text-[#71717A]">
             {statusCounts.ALL}
           </span>
         </button>
@@ -313,21 +311,15 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
         {/* Starred Dream Jobs Filter Pill */}
         <button
           onClick={() => setSelectedStatusFilter('STARRED')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+          className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1.5 ${
             selectedStatusFilter === 'STARRED'
-              ? 'bg-amber-500 text-white shadow-xs'
-              : 'bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/60 text-amber-700 dark:text-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/40'
+              ? 'bg-amber-950/70 border border-amber-800 text-amber-300'
+              : 'bg-[#121214] border border-[#27272A] text-[#A1A1AA] hover:bg-[#18181B]'
           }`}
         >
-          <Star className={`w-3.5 h-3.5 ${selectedStatusFilter === 'STARRED' ? 'fill-white' : 'fill-amber-400 text-amber-400'}`} />
-          <span>Dream Jobs</span>
-          <span
-            className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-              selectedStatusFilter === 'STARRED'
-                ? 'bg-amber-600 text-white'
-                : 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300'
-            }`}
-          >
+          <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+          <span>starred</span>
+          <span className="text-[10px] text-amber-400/80">
             {statusCounts.STARRED}
           </span>
         </button>
@@ -336,20 +328,14 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
           <button
             key={opt.value}
             onClick={() => setSelectedStatusFilter(opt.value)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md transition-colors flex items-center gap-1.5 ${
               selectedStatusFilter === opt.value
-                ? 'bg-sky-600 text-white shadow-xs'
-                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                ? 'bg-indigo-950/70 border border-indigo-700 text-indigo-300'
+                : 'bg-[#121214] border border-[#27272A] text-[#A1A1AA] hover:bg-[#18181B]'
             }`}
           >
-            <span>{opt.label}</span>
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                selectedStatusFilter === opt.value
-                  ? 'bg-sky-700 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-              }`}
-            >
+            <span>{opt.label.toLowerCase()}</span>
+            <span className="text-[10px] text-[#71717A]">
               {statusCounts[opt.value] || 0}
             </span>
           </button>
@@ -357,25 +343,25 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
       </div>
 
       {/* Spreadsheet Table */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
+      <div className="bg-[#121214] border border-[#27272A] rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold uppercase tracking-wider">
+              <tr className="bg-[#0E0E10] border-b border-[#27272A] text-[#71717A] text-[11px] font-mono uppercase tracking-wider">
                 {/* Select All Checkbox Column */}
-                <th className="py-3 pl-4 pr-1 w-10 text-center">
+                <th className="py-2.5 pl-3.5 pr-1 w-8 text-center">
                   <button
                     type="button"
                     onClick={toggleSelectAll}
-                    className="p-1 rounded text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 focus:outline-none"
+                    className="p-0.5 rounded text-[#52525B] hover:text-[#FAFAFA] focus:outline-none"
                     title={isAllSelected ? 'Deselect all' : 'Select all'}
                   >
                     {isAllSelected ? (
-                      <CheckSquare className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                      <CheckSquare className="w-3.5 h-3.5 text-indigo-400" />
                     ) : isSomeSelected ? (
-                      <MinusSquare className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                      <MinusSquare className="w-3.5 h-3.5 text-indigo-400" />
                     ) : (
-                      <Square className="w-4 h-4" />
+                      <Square className="w-3.5 h-3.5" />
                     )}
                   </button>
                 </th>
@@ -383,15 +369,15 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                 {/* Star Column Header */}
                 <th
                   onClick={() => toggleSort('starred')}
-                  className="py-3 px-2 w-8 text-center cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/80 transition-colors"
-                  title="Sort by Dream Job"
+                  className="py-2.5 px-2 w-7 text-center cursor-pointer hover:bg-[#18181B] transition-colors"
+                  title="Sort by Starred"
                 >
-                  <Star className="w-3.5 h-3.5 mx-auto text-amber-400 fill-amber-400" />
+                  <Star className="w-3 h-3 mx-auto text-amber-400 fill-amber-400" />
                 </th>
 
                 <th
                   onClick={() => toggleSort('company_name')}
-                  className="py-3 px-3 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/80 select-none transition-colors"
+                  className="py-2.5 px-3 cursor-pointer hover:bg-[#18181B] select-none transition-colors"
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Company</span>
@@ -401,7 +387,7 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
 
                 <th
                   onClick={() => toggleSort('role_title')}
-                  className="py-3 px-3 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/80 select-none transition-colors"
+                  className="py-2.5 px-3 cursor-pointer hover:bg-[#18181B] select-none transition-colors"
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Role Title</span>
@@ -411,7 +397,7 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
 
                 <th
                   onClick={() => toggleSort('status')}
-                  className="py-3 px-3 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/80 select-none transition-colors"
+                  className="py-2.5 px-3 cursor-pointer hover:bg-[#18181B] select-none transition-colors"
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Status</span>
@@ -421,7 +407,7 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
 
                 <th
                   onClick={() => toggleSort('applied_date')}
-                  className="py-3 px-3 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/80 select-none transition-colors"
+                  className="py-2.5 px-3 cursor-pointer hover:bg-[#18181B] select-none transition-colors"
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Applied Date</span>
@@ -429,13 +415,13 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                   </div>
                 </th>
 
-                <th className="py-3 px-3">Resume</th>
-                <th className="py-3 px-3 text-center">Activity</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-2.5 px-3">Resume</th>
+                <th className="py-2.5 px-3 text-center">Activity</th>
+                <th className="py-2.5 px-3 text-right">Actions</th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-sm">
+            <tbody className="divide-y divide-[#1E1E22] text-xs font-mono">
               {processedApplications.length > 0 ? (
                 processedApplications.map((app) => {
                   const isSelected = selectedIds.has(app.id);
@@ -445,37 +431,37 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                       key={app.id}
                       className={`transition-colors group ${
                         isSelected
-                          ? 'bg-sky-50/60 dark:bg-sky-950/30'
+                          ? 'bg-indigo-950/20'
                           : isStarred
-                          ? 'bg-amber-50/25 dark:bg-amber-950/15 hover:bg-amber-50/50 dark:hover:bg-amber-950/30'
-                          : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/40'
+                          ? 'bg-amber-950/10 hover:bg-amber-950/20'
+                          : 'hover:bg-[#18181B]'
                       }`}
                     >
                       {/* Row Checkbox Column */}
-                      <td className="py-3 pl-4 pr-1 text-center">
+                      <td className="py-2.5 pl-3.5 pr-1 text-center">
                         <button
                           type="button"
                           onClick={() => toggleSelectOne(app.id)}
-                          className="p-1 rounded text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 focus:outline-none"
+                          className="p-0.5 rounded text-[#52525B] hover:text-[#FAFAFA] focus:outline-none"
                           title="Select row"
                         >
                           {isSelected ? (
-                            <CheckSquare className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                            <CheckSquare className="w-3.5 h-3.5 text-indigo-400" />
                           ) : (
-                            <Square className="w-4 h-4" />
+                            <Square className="w-3.5 h-3.5" />
                           )}
                         </button>
                       </td>
 
                       {/* Row Star Column */}
-                      <td className="py-3 px-2 text-center">
+                      <td className="py-2.5 px-2 text-center">
                         <button
                           type="button"
                           onClick={() => handleToggleStar(app.id, isStarred)}
-                          className={`p-1 rounded transition-colors ${
+                          className={`p-0.5 rounded transition-colors ${
                             isStarred
-                              ? 'text-amber-400 hover:text-amber-500'
-                              : 'text-slate-300 hover:text-amber-400 opacity-0 group-hover:opacity-100 focus:opacity-100'
+                              ? 'text-amber-400 hover:text-amber-300'
+                              : 'text-[#52525B] hover:text-amber-400 opacity-0 group-hover:opacity-100 focus:opacity-100'
                           }`}
                           title={isStarred ? 'Unstar Application' : 'Star Application'}
                         >
@@ -484,20 +470,17 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                       </td>
 
                       {/* Company Column */}
-                      <td className="py-3 px-3 font-semibold text-slate-900 dark:text-white">
+                      <td className="py-2.5 px-3 font-medium text-[#FAFAFA] font-sans">
                         <div className="flex items-center gap-2">
-                          <div className="p-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                            <Building2 className="w-3.5 h-3.5" />
-                          </div>
                           <Link
                             href={`/applications/${app.id}`}
-                            className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+                            className="hover:text-indigo-400 transition-colors"
                           >
                             {app.company_name}
                           </Link>
                           {isStarred && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0">
-                              Starred
+                            <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-950/60 text-amber-400 border border-amber-800/60 shrink-0">
+                              starred
                             </span>
                           )}
                           {app.job_posting_url && (
@@ -505,7 +488,7 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                               href={app.job_posting_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-slate-400 hover:text-sky-500 transition-colors"
+                              className="text-[#52525B] hover:text-indigo-400 transition-colors"
                               title="Open original job posting"
                             >
                               <ExternalLink className="w-3 h-3" />
@@ -515,35 +498,25 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                       </td>
 
                       {/* Role Title Column */}
-                      <td className="py-3 px-3 text-slate-700 dark:text-slate-300">
+                      <td className="py-2.5 px-3 text-[#A1A1AA] font-sans">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span>{app.role_title}</span>
                           {app.work_mode && (
-                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                              {app.work_mode}
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#18181B] border border-[#27272A] text-[#71717A]">
+                              {app.work_mode.toLowerCase()}
                             </span>
                           )}
                         </div>
                       </td>
 
                       {/* Status Column with Inline Quick Selector */}
-                      <td className="py-3 px-3">
+                      <td className="py-2.5 px-3">
                         <select
                           value={app.status}
                           onChange={(e) =>
                             handleInlineStatusChange(app.id, e.target.value as ApplicationStatus)
                           }
-                          className={`text-xs font-semibold px-2.5 py-1 rounded-md border cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500 transition-colors ${
-                            app.status === 'APPLIED'
-                              ? 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/70 dark:text-sky-300 dark:border-sky-800'
-                              : app.status === 'INTERVIEW'
-                              ? 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/70 dark:text-violet-300 dark:border-violet-800'
-                              : app.status === 'OFFER'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/70 dark:text-emerald-300 dark:border-emerald-800'
-                              : app.status === 'REJECTED'
-                              ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/70 dark:text-rose-300 dark:border-rose-800'
-                              : 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                          }`}
+                          className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] focus:outline-none focus:border-indigo-500 cursor-pointer"
                         >
                           {STATUS_OPTIONS.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -554,65 +527,62 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                       </td>
 
                       {/* Applied Date Column */}
-                      <td className="py-3 px-3 text-xs text-slate-500 dark:text-slate-400">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{app.applied_date ? app.applied_date.split('T')[0] : 'N/A'}</span>
-                        </div>
+                      <td className="py-2.5 px-3 text-[11px] text-[#71717A]">
+                        <span>{app.applied_date ? app.applied_date.split('T')[0] : '—'}</span>
                       </td>
 
                       {/* Resume Column */}
-                      <td className="py-3 px-3 text-xs">
+                      <td className="py-2.5 px-3 text-[11px]">
                         {app.resumes ? (
                           <span
-                            className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[11px] font-medium"
+                            className="inline-flex items-center gap-1 text-[#A1A1AA] bg-[#18181B] border border-[#27272A] px-1.5 py-0.5 rounded text-[10px]"
                             title={app.resumes.original_filename}
                           >
-                            <FileText className="w-3 h-3 text-sky-500" />
-                            <span className="truncate max-w-[120px]">{app.resumes.version_label}</span>
+                            <FileText className="w-2.5 h-2.5 text-indigo-400" />
+                            <span className="truncate max-w-[100px]">{app.resumes.version_label}</span>
                           </span>
                         ) : (
-                          <span className="text-slate-400 text-xs">None</span>
+                          <span className="text-[#52525B]">none</span>
                         )}
                       </td>
 
                       {/* Activity Counters Column */}
-                      <td className="py-3 px-3 text-center">
-                        <div className="inline-flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <td className="py-2.5 px-3 text-center">
+                        <div className="inline-flex items-center gap-2 text-[11px] text-[#71717A]">
                           <span
                             className="flex items-center gap-0.5"
                             title={`${app._count?.interviews || 0} interviews scheduled`}
                           >
-                            <Video className="w-3.5 h-3.5 text-violet-500" />
+                            <Video className="w-3 h-3 text-amber-400" />
                             <span>{app._count?.interviews || 0}</span>
                           </span>
                           <span
                             className="flex items-center gap-0.5"
                             title={`${app._count?.notes || 0} notes logged`}
                           >
-                            <StickyNote className="w-3.5 h-3.5 text-amber-500" />
+                            <StickyNote className="w-3 h-3 text-[#52525B]" />
                             <span>{app._count?.notes || 0}</span>
                           </span>
                         </div>
                       </td>
 
                       {/* Row Action Buttons */}
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-2.5 px-3 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Link
                             href={`/applications/${app.id}`}
-                            className="p-1.5 rounded-md text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="p-1 rounded text-[#71717A] hover:text-[#FAFAFA] hover:bg-[#18181B] transition-colors"
                             title="View Details"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-3.5 h-3.5" />
                           </Link>
 
                           <button
                             onClick={() => handleDelete(app.id, app.company_name)}
-                            className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="p-1 rounded text-[#71717A] hover:text-rose-400 hover:bg-[#18181B] transition-colors"
                             title="Delete Application"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -621,7 +591,7 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
                 })
               ) : (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400 text-sm">
+                  <td colSpan={9} className="py-12 text-center text-[#71717A] text-xs">
                     No applications match the current filter or search criteria.
                   </td>
                 </tr>
@@ -631,21 +601,20 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
         </div>
       </div>
 
-      {/* Floating Glassmorphic Bulk Action Bar */}
+      {/* Floating Bulk Action Bar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900/90 dark:bg-slate-800/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-4 flex-wrap animate-in fade-in slide-in-from-bottom-5 duration-200">
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-sky-500 text-white text-xs font-bold flex items-center justify-center shadow-xs">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#121214] text-[#FAFAFA] px-4 py-2.5 rounded-lg shadow-2xl border border-[#27272A] flex items-center gap-3 font-mono text-xs animate-in fade-in slide-in-from-bottom-3 duration-150">
+          <div className="flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded bg-indigo-600 text-white text-[11px] font-bold flex items-center justify-center">
               {selectedIds.size}
             </span>
-            <span className="text-xs font-medium text-slate-200">Selected</span>
+            <span className="text-[#A1A1AA]">selected</span>
           </div>
 
-          <div className="h-4 w-px bg-slate-700" />
+          <div className="h-4 w-px bg-[#27272A]" />
 
           {/* Bulk Status Select */}
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-400 hidden sm:inline">Set Status:</span>
             <select
               onChange={(e) => {
                 if (e.target.value) {
@@ -655,10 +624,10 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
               }}
               defaultValue=""
               disabled={isBulkProcessing}
-              className="text-xs font-medium bg-slate-800 text-white border border-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-sky-400 cursor-pointer"
+              className="text-xs bg-[#0A0A0B] text-[#FAFAFA] border border-[#27272A] rounded px-2 py-1 focus:outline-none focus:border-indigo-500 cursor-pointer"
             >
               <option value="" disabled>
-                Select stage...
+                set status...
               </option>
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -672,36 +641,35 @@ export const ApplicationsTable: React.FC<ApplicationsTableProps> = ({
           <button
             onClick={handleBulkExportCsv}
             disabled={isBulkProcessing}
-            className="flex items-center gap-1 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors"
+            className="flex items-center gap-1 text-xs bg-[#18181B] hover:bg-[#27272A] text-[#FAFAFA] px-2.5 py-1 rounded border border-[#27272A] transition-colors"
             title="Export selected to CSV"
           >
-            <Download className="w-3.5 h-3.5 text-sky-400" />
-            <span className="hidden sm:inline">Export CSV</span>
+            <Download className="w-3 h-3 text-indigo-400" />
+            <span className="hidden sm:inline">export</span>
           </button>
 
           {/* Bulk Delete Button */}
           <button
             onClick={handleBulkDelete}
             disabled={isBulkProcessing}
-            className="flex items-center gap-1 text-xs font-medium bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 hover:text-rose-200 px-3 py-1.5 rounded-lg border border-rose-500/40 transition-colors"
+            className="flex items-center gap-1 text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 px-2.5 py-1 rounded border border-rose-900/60 transition-colors"
             title="Delete selected applications"
           >
-            <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-            <span>Delete</span>
+            <Trash2 className="w-3 h-3 text-rose-400" />
+            <span>delete</span>
           </button>
 
           {/* Clear Selection Button */}
           <button
             onClick={clearSelection}
             disabled={isBulkProcessing}
-            className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1 rounded text-[#71717A] hover:text-[#FAFAFA] hover:bg-[#18181B] transition-colors"
             title="Clear selection"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
     </div>
   );
 };
-

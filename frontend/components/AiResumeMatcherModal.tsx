@@ -9,13 +9,11 @@ import { AiMatchResponse, Resume } from '../lib/types';
 import { useToast } from './ui/Toast';
 import {
   Sparkles,
-  Award,
   CheckCircle2,
   AlertCircle,
   Lightbulb,
   HelpCircle,
   Cpu,
-  RefreshCw,
   Copy,
   Check,
   FileText,
@@ -65,7 +63,6 @@ export const AiResumeMatcherModal: React.FC<AiResumeMatcherModalProps> = ({
     }
   }, [isOpen, initialResumeId]);
 
-  // Fetch extracted resume text whenever selected resume changes
   useEffect(() => {
     if (!selectedResumeId) {
       setExtractedResumeText('');
@@ -107,7 +104,7 @@ export const AiResumeMatcherModal: React.FC<AiResumeMatcherModalProps> = ({
       });
 
       setMatchResult(result);
-      showToast('AI ATS Analysis complete!', 'success');
+      showToast('ATS Match analysis complete', 'success');
     } catch (err: any) {
       showToast(err.message || 'Failed to analyze resume', 'error');
     } finally {
@@ -118,7 +115,7 @@ export const AiResumeMatcherModal: React.FC<AiResumeMatcherModalProps> = ({
   const handleCopyTip = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
     setCopiedTipIndex(index);
-    showToast('Tip copied to clipboard!', 'info');
+    showToast('Tip copied to clipboard', 'info');
     setTimeout(() => setCopiedTipIndex(null), 2000);
   };
 
@@ -126,11 +123,10 @@ export const AiResumeMatcherModal: React.FC<AiResumeMatcherModalProps> = ({
     setJobDescription(
       `We are looking for a ${roleTitle} at ${companyName}.
 Requirements:
-- Strong proficiency in TypeScript, React, Next.js, and modern CSS/Tailwind.
-- Hands-on experience building scalable backend microservices with Node.js and NestJS.
-- Experience with PostgreSQL, Prisma ORM, and database schema migrations (Flyway).
-- Familiarity with cloud platforms (AWS S3, RDS, ECS Fargate, CDK) and Docker containerization.
-- Solid understanding of CI/CD pipelines (GitHub Actions), unit testing (Jest), and RESTful APIs.`,
+- Strong proficiency in TypeScript, React, Next.js, and Node.js.
+- Experience with PostgreSQL, Prisma ORM, and database architecture.
+- Cloud deployment experience with AWS (S3, RDS, ECS) and Docker containerization.
+- Clean code, unit testing (Jest), and RESTful API architecture.`,
     );
   };
 
@@ -138,38 +134,36 @@ Requirements:
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="✨ AI ATS Resume & Job Description Matcher"
+      title="ATS Resume & Job Description Matcher"
       maxWidth="2xl"
     >
-      <div className="space-y-6">
-        {/* Top Description Banner */}
-        <div className="p-3.5 rounded-xl bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-violet-500/10 border border-sky-200 dark:border-sky-900/50 flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-sky-600 text-white shadow-sm mt-0.5">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-              Targeted Role: {roleTitle} at {companyName}
-            </h4>
-            <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
-              Compare your resume against this job posting using AI to maximize your ATS passing rate and prepare for technical interview rounds.
+      <div className="space-y-4 text-[#FAFAFA]">
+        {/* Banner */}
+        <div className="p-3 rounded-lg bg-[#0E0E10] border border-[#27272A] flex items-start gap-2.5">
+          <Sparkles className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+          <div className="text-xs">
+            <p className="font-semibold text-[#FAFAFA]">
+              {roleTitle} at {companyName}
+            </p>
+            <p className="text-[#71717A] text-[11px] mt-0.5">
+              Compare your resume against JD requirements for ATS score, keyword gaps, and interview focus areas.
             </p>
           </div>
         </div>
 
         {/* Input Form */}
-        <form onSubmit={handleAnalyze} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleAnalyze} className="space-y-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* Resume Selector */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Select Resume Version
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-[#D4D4D8]">
+                  Resume Version
                 </label>
                 {wordCount > 0 && (
-                  <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                  <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3" />
-                    {wordCount} words extracted
+                    {wordCount}w
                   </span>
                 )}
               </div>
@@ -177,7 +171,7 @@ Requirements:
               <select
                 value={selectedResumeId}
                 onChange={(e) => setSelectedResumeId(e.target.value)}
-                className="w-full text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full text-xs bg-[#0A0A0B] border border-[#27272A] rounded-md px-2.5 py-1.5 text-[#FAFAFA] focus:outline-none focus:border-indigo-500 font-mono"
               >
                 {resumes.length > 0 ? (
                   resumes.map((r) => (
@@ -192,17 +186,16 @@ Requirements:
                 )}
               </select>
 
-              {/* Toggle to view/edit extracted text */}
-              <div className="mt-1.5 flex items-center justify-between text-[11px]">
+              <div className="mt-1 flex items-center justify-between text-[11px] font-mono">
                 <button
                   type="button"
                   onClick={() => setShowCustomResumeEditor((prev) => !prev)}
-                  className="text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1"
+                  className="text-indigo-400 hover:underline flex items-center gap-1"
                 >
                   <FileText className="w-3 h-3" />
-                  <span>{showCustomResumeEditor ? 'Hide Resume Text' : 'View / Edit Resume Text'}</span>
+                  <span>{showCustomResumeEditor ? 'hide text' : 'edit resume text'}</span>
                 </button>
-                {loadingText && <span className="text-slate-400 animate-pulse">Extracting text...</span>}
+                {loadingText && <span className="text-[#71717A] animate-pulse">extracting...</span>}
               </div>
             </div>
 
@@ -211,76 +204,75 @@ Requirements:
               <button
                 type="button"
                 onClick={loadSampleJd}
-                className="text-xs text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1.5 py-2"
+                className="text-xs font-mono text-indigo-400 hover:underline flex items-center gap-1 py-1.5"
               >
                 <Lightbulb className="w-3.5 h-3.5" />
-                <span>Auto-fill Sample Job Description</span>
+                <span>+ fill sample JD</span>
               </button>
             </div>
           </div>
 
           {/* Optional Resume Text Preview / Editor */}
           {showCustomResumeEditor && (
-            <div className="space-y-1 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-                Extracted Resume Content (Sent to AI)
+            <div className="space-y-1 p-3 rounded bg-[#0E0E10] border border-[#27272A]">
+              <label className="block text-[11px] font-mono text-[#71717A]">
+                Resume text passed to AI:
               </label>
               <textarea
                 rows={4}
                 value={extractedResumeText}
                 onChange={(e) => setExtractedResumeText(e.target.value)}
                 placeholder="Extracted resume text..."
-                className="w-full text-xs font-mono p-2.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                className="w-full text-xs font-mono p-2 rounded bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500"
               />
             </div>
           )}
 
           {/* Job Description Textarea */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-[#D4D4D8]">
                 Job Description / Requirements *
               </label>
-              <span className="text-[11px] text-slate-400">
-                {jobDescription.length} characters
+              <span className="text-[10px] font-mono text-[#71717A]">
+                {jobDescription.length} chars
               </span>
             </div>
             <textarea
-              rows={5}
-              placeholder="Paste the requirements, responsibilities, and qualifications from the job posting..."
+              rows={4}
+              placeholder="Paste the job description and requirements here..."
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
-              className="w-full text-xs font-mono p-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full text-xs font-mono p-2.5 rounded-md bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500"
               required
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-2.5 pt-1">
             <Button
               type="submit"
-              size="md"
+              size="sm"
               isLoading={isAnalyzing}
-              className="bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white shadow-sm"
             >
-              <Sparkles className="w-4 h-4 mr-1.5" />
-              Analyze ATS Match
+              <Sparkles className="w-3.5 h-3.5 mr-1" />
+              Analyze Match
             </Button>
           </div>
         </form>
 
         {/* Results Panel */}
         {matchResult && (
-          <div className="space-y-6 pt-6 border-t border-slate-200 dark:border-slate-800 animate-in fade-in duration-300">
+          <div className="space-y-4 pt-4 border-t border-[#27272A] animate-in fade-in duration-200">
             {/* Score & Verdict Banner */}
-            <div className="p-5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
+            <div className="p-4 rounded-lg bg-[#0E0E10] border border-[#27272A] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
                 <div
-                  className={`w-16 h-16 rounded-full flex items-center justify-center font-extrabold text-2xl text-white shadow-md ${
+                  className={`w-12 h-12 rounded-lg flex items-center justify-center font-mono font-semibold text-lg border ${
                     matchResult.score >= 80
-                      ? 'bg-gradient-to-tr from-emerald-600 to-teal-400'
+                      ? 'bg-emerald-950/60 border-emerald-800 text-emerald-400'
                       : matchResult.score >= 60
-                      ? 'bg-gradient-to-tr from-amber-600 to-amber-400'
-                      : 'bg-gradient-to-tr from-rose-600 to-rose-400'
+                      ? 'bg-amber-950/60 border-amber-800 text-amber-300'
+                      : 'bg-rose-950/60 border-rose-800 text-rose-400'
                   }`}
                 >
                   {matchResult.score}%
@@ -288,46 +280,37 @@ Requirements:
 
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                      ATS Match Score
+                    <h3 className="text-xs font-semibold text-[#FAFAFA]">
+                      ATS Score: {matchResult.score}/100
                     </h3>
-                    <Badge
-                      variant={
-                        matchResult.verdict === 'STRONG_MATCH'
-                          ? 'success'
-                          : matchResult.verdict === 'MODERATE_MATCH'
-                          ? 'warning'
-                          : 'danger'
-                      }
-                    >
-                      {matchResult.verdict.replace('_', ' ')}
-                    </Badge>
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#18181B] border border-[#27272A] text-[#A1A1AA]">
+                      {matchResult.verdict.toLowerCase()}
+                    </span>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md">
+                  <p className="text-xs text-[#A1A1AA] mt-0.5 max-w-md">
                     {matchResult.summary}
                   </p>
                 </div>
               </div>
 
-              <div className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5 self-end sm:self-center">
-                <Cpu className="w-3.5 h-3.5" />
-                <span>{matchResult.analyzed_with}</span>
-              </div>
+              <span className="text-[10px] font-mono text-[#52525B]">
+                {matchResult.analyzed_with}
+              </span>
             </div>
 
             {/* Skills Breakdown Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
               {/* Matched Skills */}
-              <div className="p-4 rounded-xl border border-emerald-200 dark:border-emerald-950 bg-emerald-50/40 dark:bg-emerald-950/20">
-                <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold text-xs mb-3">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Matched Skills & Keywords ({matchResult.matched_skills.length})</span>
+              <div className="p-3 rounded-lg border border-[#27272A] bg-[#0E0E10]">
+                <div className="flex items-center gap-1.5 text-emerald-400 font-semibold text-[11px] mb-2">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Matched Keywords ({matchResult.matched_skills.length})</span>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1">
                   {matchResult.matched_skills.map((skill, i) => (
                     <span
                       key={i}
-                      className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800"
+                      className="px-1.5 py-0.5 rounded text-[10px] bg-[#18181B] text-emerald-400 border border-[#27272A]"
                     >
                       ✓ {skill}
                     </span>
@@ -336,24 +319,24 @@ Requirements:
               </div>
 
               {/* Missing Skills */}
-              <div className="p-4 rounded-xl border border-rose-200 dark:border-rose-950 bg-rose-50/40 dark:bg-rose-950/20">
-                <div className="flex items-center gap-2 text-rose-800 dark:text-rose-300 font-bold text-xs mb-3">
-                  <AlertCircle className="w-4 h-4 text-rose-600" />
-                  <span>Missing Keywords & Skill Gaps ({matchResult.missing_skills.length})</span>
+              <div className="p-3 rounded-lg border border-[#27272A] bg-[#0E0E10]">
+                <div className="flex items-center gap-1.5 text-rose-400 font-semibold text-[11px] mb-2">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  <span>Skill Gaps ({matchResult.missing_skills.length})</span>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1">
                   {matchResult.missing_skills.length > 0 ? (
                     matchResult.missing_skills.map((skill, i) => (
                       <span
                         key={i}
-                        className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 border border-rose-300 dark:border-rose-800"
+                        className="px-1.5 py-0.5 rounded text-[10px] bg-[#18181B] text-rose-300 border border-[#27272A]"
                       >
                         + {skill}
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs text-slate-500">
-                      Zero missing core keywords detected!
+                    <span className="text-[11px] text-[#71717A]">
+                      No core skill gaps detected.
                     </span>
                   )}
                 </div>
@@ -361,19 +344,19 @@ Requirements:
             </div>
 
             {/* Recommendations Section */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-bold text-xs">
-                <Lightbulb className="w-4 h-4 text-amber-500" />
-                <span>Actionable Resume Tailoring Recommendations</span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 text-[#FAFAFA] font-semibold text-xs">
+                <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
+                <span>Resume Recommendations</span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {matchResult.recommendations.map((rec, i) => (
                   <div
                     key={i}
-                    className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 flex items-start justify-between gap-3 group"
+                    className="p-2.5 rounded bg-[#0E0E10] border border-[#27272A] text-xs text-[#A1A1AA] flex items-start justify-between gap-2.5"
                   >
                     <div className="flex items-start gap-2">
-                      <span className="font-bold text-sky-600 dark:text-sky-400">
+                      <span className="font-mono text-indigo-400 text-xs">
                         {i + 1}.
                       </span>
                       <span>{rec}</span>
@@ -382,11 +365,11 @@ Requirements:
                     <button
                       type="button"
                       onClick={() => handleCopyTip(rec, i)}
-                      className="text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors p-1"
-                      title="Copy tip"
+                      className="text-[#71717A] hover:text-[#FAFAFA] p-0.5 transition-colors"
+                      title="Copy recommendation"
                     >
                       {copiedTipIndex === i ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-500" />
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
                       ) : (
                         <Copy className="w-3.5 h-3.5" />
                       )}
@@ -397,18 +380,18 @@ Requirements:
             </div>
 
             {/* Interview Prep Questions */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-bold text-xs">
-                <HelpCircle className="w-4 h-4 text-violet-500" />
-                <span>Likely Interview Focus Areas & Questions</span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 text-[#FAFAFA] font-semibold text-xs">
+                <HelpCircle className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Likely Interview Focus Areas</span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {matchResult.interview_focus_areas.map((q, i) => (
                   <div
                     key={i}
-                    className="p-2.5 rounded-lg bg-violet-50/50 dark:bg-violet-950/20 border border-violet-200/60 dark:border-violet-900/40 text-xs text-slate-700 dark:text-slate-300"
+                    className="p-2 rounded bg-[#0E0E10] border border-[#27272A] text-xs text-[#A1A1AA] font-mono"
                   >
-                    💬 <strong>Q{i + 1}:</strong> {q}
+                    <span className="text-indigo-400">Q{i + 1}:</span> {q}
                   </div>
                 ))}
               </div>

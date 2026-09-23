@@ -6,8 +6,8 @@ import { Navbar } from '../components/Navbar';
 import { CommandPalette } from '../components/CommandPalette';
 
 export const metadata: Metadata = {
-  title: 'JobTracker — Job Application Tracker',
-  description: 'Full-stack Kanban job and internship application tracker with resume versioning and interview management.',
+  title: 'JobTracker — Personal Career Operating System',
+  description: 'Open-source personal career copilot with Kanban job tracking, AI mock interviews, and salary negotiation.',
 };
 
 export default function RootLayout({
@@ -16,13 +16,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased">
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className="bg-[#0A0A0B] text-zinc-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500/30 selection:text-white">
         <AuthProvider>
           <ToastProvider>
             <Navbar />
             <CommandPalette />
-            <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-5">
               {children}
             </main>
           </ToastProvider>

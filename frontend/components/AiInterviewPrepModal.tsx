@@ -29,9 +29,6 @@ import {
   ShieldCheck,
   Zap,
   Award,
-  ThumbsUp,
-  AlertTriangle,
-  MessageSquare,
 } from 'lucide-react';
 
 interface AiInterviewPrepModalProps {
@@ -107,7 +104,7 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
       });
 
       setEvaluations((prev) => ({ ...prev, [qId]: res }));
-      showToast(`Answer evaluated! Score: ${res.score}/100 (${res.verdict})`, 'success');
+      showToast(`Answer evaluated: ${res.score}/100 (${res.verdict})`, 'success');
     } catch (err: any) {
       showToast(err.message || 'Failed to evaluate answer', 'error');
     } finally {
@@ -139,13 +136,12 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
       });
 
       setPrepResult(result);
-      // Auto-expand the first question
       if (result.questions && result.questions.length > 0) {
         setExpandedQuestions({ [result.questions[0].id || '0']: true });
       }
-      showToast('Generated 5 tailored interview practice questions!', 'success');
+      showToast('Generated 5 interview practice questions', 'success');
     } catch (err: any) {
-      showToast(err.message || 'Failed to generate interview practice questions', 'error');
+      showToast(err.message || 'Failed to generate interview questions', 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -175,153 +171,139 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
     showToast(successMsg, 'success');
-    setTimeout(() => setCopiedKey(null), 2500);
+    setTimeout(() => setCopiedKey(null), 2000);
   };
 
   const handleCopyFullPrepSheet = () => {
     if (!prepResult) return;
 
-    let markdown = `# Interview Prep Sheet: ${prepResult.role_title} at ${prepResult.company_name}\n`;
-    markdown += `*Format:* ${prepResult.round_type} Round | *Engine:* ${prepResult.generated_with}\n\n`;
+    let markdown = `# Interview Prep: ${prepResult.role_title} at ${prepResult.company_name}\n`;
+    markdown += `Format: ${prepResult.round_type}\n\n`;
 
-    markdown += `## General Strategic Tips\n`;
+    markdown += `## Strategic Tips\n`;
     prepResult.general_interview_tips.forEach((tip, idx) => {
       markdown += `${idx + 1}. ${tip}\n`;
     });
-    markdown += `\n---\n\n## Practice Questions & Suggested Frameworks\n\n`;
+    markdown += `\n---\n\n## Practice Questions\n\n`;
 
     prepResult.questions.forEach((q, idx) => {
       markdown += `### Q${idx + 1} [${q.category} - ${q.difficulty}]: ${q.question}\n`;
-      markdown += `**Why Interviewers Ask This:**\n${q.context_or_why_asked}\n\n`;
-      markdown += `**Suggested Answer Framework:**\n${q.sample_answer_framework}\n\n---\n\n`;
+      markdown += `**Why Asked:**\n${q.context_or_why_asked}\n\n`;
+      markdown += `**Answer Framework:**\n${q.sample_answer_framework}\n\n---\n\n`;
     });
 
-    handleCopyText(markdown, 'full-sheet', 'Copied full interview prep sheet (Markdown) to clipboard!');
+    handleCopyText(markdown, 'full-sheet', 'Copied full prep sheet (Markdown)');
   };
 
-  const getCategoryBadgeClass = (category: string) => {
-    switch (category) {
-      case 'TECHNICAL':
-        return 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
-      case 'SYSTEM_DESIGN':
-        return 'bg-purple-500/10 text-purple-400 border border-purple-500/20';
-      case 'BEHAVIORAL':
-        return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-      case 'EXPERIENCE':
-        return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
-      default:
-        return 'bg-slate-500/10 text-slate-300 border border-slate-500/20';
-    }
+  const getCategoryBadge = (category: string) => {
+    return (
+      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#18181B] text-[#A1A1AA] border border-[#27272A]">
+        {category.toLowerCase()}
+      </span>
+    );
   };
 
-  const getDifficultyBadgeClass = (difficulty: string) => {
-    switch (difficulty) {
-      case 'EASY':
-        return 'bg-green-500/10 text-green-400 border border-green-500/20';
-      case 'MEDIUM':
-        return 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20';
-      case 'HARD':
-        return 'bg-red-500/10 text-red-400 border border-red-500/20';
-      default:
-        return 'bg-slate-500/10 text-slate-300 border border-slate-500/20';
-    }
+  const getDifficultyBadge = (difficulty: string) => {
+    const color =
+      difficulty === 'EASY'
+        ? 'text-emerald-400'
+        : difficulty === 'MEDIUM'
+        ? 'text-amber-400'
+        : 'text-rose-400';
+    return (
+      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#18181B] border border-[#27272A] ${color}`}>
+        {difficulty.toLowerCase()}
+      </span>
+    );
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="AI Mock Interview Prep & Practice Questions" maxWidth="2xl">
-      <div className="space-y-6">
+    <Modal isOpen={isOpen} onClose={onClose} title="AI Interview Prep & STAR Coach" maxWidth="2xl">
+      <div className="space-y-4 text-[#FAFAFA]">
         {/* Header summary banner */}
-        <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-purple-500/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-purple-500/20 text-purple-400 ring-1 ring-purple-500/30">
-              <Brain className="h-6 w-6" />
+        <div className="p-3 rounded-lg bg-[#0E0E10] border border-[#27272A] flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded bg-[#18181B] text-indigo-400">
+              <Brain className="h-4 w-4" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-slate-200">
-                {roleTitle} <span className="text-slate-400">at</span> {companyName}
+              <h4 className="text-xs font-semibold text-[#FAFAFA]">
+                {roleTitle} <span className="text-[#71717A]">at</span> {companyName}
               </h4>
-              <p className="text-xs text-slate-400">
-                Tailored AI practice questions synthesized from job requirements, candidate skills & round format.
+              <p className="text-[11px] font-mono text-[#71717A]">
+                Tailored interview questions synthesized from requirements & candidate background.
               </p>
             </div>
           </div>
           {prepResult && (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyFullPrepSheet}
-                className="text-xs border-purple-500/30 text-purple-300 hover:bg-purple-500/10"
-              >
-                {copiedKey === 'full-sheet' ? (
-                  <>
-                    <Check className="h-3.5 w-3.5 mr-1.5 text-green-400" />
-                    Copied Prep Sheet
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-3.5 w-3.5 mr-1.5" />
-                    Export Prep Sheet
-                  </>
-                )}
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyFullPrepSheet}
+              className="text-xs font-mono"
+            >
+              {copiedKey === 'full-sheet' ? (
+                <>
+                  <Check className="h-3 w-3 mr-1 text-emerald-400" />
+                  Copied
+                </>
+              ) : (
+                <>
+                  <Copy className="h-3 w-3 mr-1" />
+                  Export Sheet
+                </>
+              )}
+            </Button>
           )}
         </div>
 
         {/* Configuration Controls */}
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Round Type Selector */}
+        <div className="p-3.5 rounded-lg bg-[#0E0E10] border border-[#27272A] space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
-                <Target className="h-3.5 w-3.5 text-indigo-400" />
-                Interview Round Format
+              <label className="block text-xs font-medium text-[#D4D4D8] mb-1">
+                Round Format
               </label>
               <select
                 value={roundType}
                 onChange={(e) => setRoundType(e.target.value as InterviewRoundType)}
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className="w-full bg-[#0A0A0B] border border-[#27272A] rounded px-2.5 py-1.5 text-xs text-[#FAFAFA] focus:outline-none focus:border-indigo-500 font-mono"
               >
-                <option value="MIXED">Mixed Round (Technical, System & Behavioral)</option>
-                <option value="TECHNICAL">Deep Technical & Code Architecture</option>
-                <option value="SYSTEM_DESIGN">System Design & Scalability</option>
-                <option value="BEHAVIORAL">Behavioral (STAR Method & Leadership)</option>
+                <option value="MIXED">Mixed (Technical & STAR)</option>
+                <option value="TECHNICAL">Technical Architecture</option>
+                <option value="SYSTEM_DESIGN">System Design</option>
+                <option value="BEHAVIORAL">Behavioral (STAR Method)</option>
               </select>
             </div>
 
-            {/* Resume Version Selector */}
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
-                <FileText className="h-3.5 w-3.5 text-blue-400" />
+              <label className="block text-xs font-medium text-[#D4D4D8] mb-1">
                 Context Resume
               </label>
               <select
                 value={selectedResumeId}
                 onChange={(e) => setSelectedResumeId(e.target.value)}
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className="w-full bg-[#0A0A0B] border border-[#27272A] rounded px-2.5 py-1.5 text-xs text-[#FAFAFA] focus:outline-none focus:border-indigo-500 font-mono"
               >
-                <option value="">General Candidate Profile</option>
+                <option value="">Default Profile</option>
                 {resumes.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.version_label} ({r.original_filename})
+                    {r.version_label}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Custom Focus Tags */}
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
-                <Zap className="h-3.5 w-3.5 text-amber-400" />
+              <label className="block text-xs font-medium text-[#D4D4D8] mb-1">
                 Focus Topics (Optional)
               </label>
               <input
                 type="text"
                 value={focusAreaInput}
                 onChange={(e) => setFocusAreaInput(e.target.value)}
-                placeholder="e.g. Microservices, SQS, Team Conflict"
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                placeholder="e.g. Postgres, Microservices"
+                className="w-full bg-[#0A0A0B] border border-[#27272A] rounded px-2.5 py-1.5 text-xs text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500 font-mono"
               />
             </div>
           </div>
@@ -330,17 +312,17 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
             <Button
               onClick={() => handleGenerate()}
               disabled={isGenerating}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs px-4 py-2 font-medium shadow-lg shadow-purple-600/20"
+              size="sm"
             >
               {isGenerating ? (
                 <>
-                  <RefreshCw className="h-3.5 w-3.5 mr-2 animate-spin" />
-                  Generating Questions...
+                  <RefreshCw className="h-3 w-3 mr-1.5 animate-spin" />
+                  Generating...
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-3.5 w-3.5 mr-2" />
-                  {prepResult ? 'Regenerate Practice Questions' : 'Generate Practice Questions'}
+                  <Sparkles className="h-3 w-3 mr-1.5" />
+                  {prepResult ? 'Regenerate Questions' : 'Generate Practice Questions'}
                 </>
               )}
             </Button>
@@ -349,21 +331,21 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
 
         {/* Results Area */}
         {prepResult && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* General Tips Card */}
             {prepResult.general_interview_tips && prepResult.general_interview_tips.length > 0 && (
-              <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 uppercase tracking-wider">
-                  <Lightbulb className="h-4 w-4 text-amber-400" />
-                  Strategic Interview Tips for {prepResult.company_name}
+              <div className="p-3 rounded-lg bg-[#0E0E10] border border-[#27272A] space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-mono text-amber-400">
+                  <Lightbulb className="h-3.5 w-3.5" />
+                  <span>Strategic Tips for {prepResult.company_name}</span>
                 </div>
-                <ul className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <ul className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-0.5">
                   {prepResult.general_interview_tips.map((tip, idx) => (
                     <li
                       key={idx}
-                      className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 text-xs text-slate-300 leading-relaxed flex items-start gap-2"
+                      className="p-2 rounded bg-[#0A0A0B] border border-[#27272A] text-xs text-[#A1A1AA] leading-relaxed flex items-start gap-1.5"
                     >
-                      <span className="font-bold text-amber-400 text-xs mt-0.5">{idx + 1}.</span>
+                      <span className="font-mono text-amber-400 text-xs">{idx + 1}.</span>
                       <span>{tip}</span>
                     </li>
                   ))}
@@ -372,35 +354,35 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
             )}
 
             {/* Questions Header with Expand/Collapse All */}
-            <div className="flex items-center justify-between pt-2">
-              <h4 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                <Layers className="h-4 w-4 text-purple-400" />
-                Practice Questions ({prepResult.questions.length})
-                <span className="text-xs font-normal text-slate-500">
-                  Powered by {prepResult.generated_with}
+            <div className="flex items-center justify-between pt-1">
+              <h4 className="text-xs font-mono text-[#FAFAFA] flex items-center gap-2">
+                <Layers className="h-3.5 w-3.5 text-indigo-400" />
+                <span>Questions ({prepResult.questions.length})</span>
+                <span className="text-[#52525B]">
+                  • {prepResult.generated_with}
                 </span>
               </h4>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 font-mono text-xs">
                 <button
                   type="button"
                   onClick={expandAll}
-                  className="text-xs text-slate-400 hover:text-slate-200 transition-colors"
+                  className="text-[#71717A] hover:text-[#FAFAFA] transition-colors"
                 >
-                  Expand All
+                  expand all
                 </button>
-                <span className="text-slate-700">|</span>
+                <span className="text-[#27272A]">|</span>
                 <button
                   type="button"
                   onClick={collapseAll}
-                  className="text-xs text-slate-400 hover:text-slate-200 transition-colors"
+                  className="text-[#71717A] hover:text-[#FAFAFA] transition-colors"
                 >
-                  Collapse All
+                  collapse all
                 </button>
               </div>
             </div>
 
             {/* Questions List */}
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {prepResult.questions.map((q, idx) => {
                 const qId = q.id || String(idx);
                 const isExpanded = !!expandedQuestions[qId];
@@ -408,74 +390,68 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
                 return (
                   <div
                     key={qId}
-                    className="rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition-all overflow-hidden"
+                    className="rounded-lg bg-[#0E0E10] border border-[#27272A] overflow-hidden"
                   >
-                    {/* Question Card Header / Summary */}
                     <div
                       onClick={() => toggleQuestion(qId)}
-                      className="p-4 cursor-pointer flex items-start justify-between gap-4 select-none hover:bg-slate-800/30 transition-colors"
+                      className="p-3 cursor-pointer flex items-start justify-between gap-3 select-none hover:bg-[#151518] transition-colors"
                     >
-                      <div className="space-y-2 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-bold text-slate-400">Q{idx + 1}</span>
-                          <span className={`text-[10px] px-2 py-0.5 rounded font-medium ${getCategoryBadgeClass(q.category)}`}>
-                            {q.category}
-                          </span>
-                          <span className={`text-[10px] px-2 py-0.5 rounded font-medium ${getDifficultyBadgeClass(q.difficulty)}`}>
-                            {q.difficulty}
-                          </span>
+                      <div className="space-y-1.5 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs font-mono text-[#71717A]">Q{idx + 1}</span>
+                          {getCategoryBadge(q.category)}
+                          {getDifficultyBadge(q.difficulty)}
                         </div>
-                        <p className="text-sm font-medium text-slate-100 leading-snug">
+                        <p className="text-xs font-medium text-[#FAFAFA] leading-snug">
                           {q.question}
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 pt-1">
+                      <div className="flex items-center gap-1.5 pt-0.5">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleCopyText(q.question, `q-${qId}`, 'Copied question text to clipboard!');
+                            handleCopyText(q.question, `q-${qId}`, 'Copied question text');
                           }}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors"
-                          title="Copy question text"
+                          className="p-1 rounded bg-[#18181B] hover:bg-[#27272A] text-[#71717A] hover:text-[#FAFAFA] transition-colors"
+                          title="Copy question"
                         >
                           {copiedKey === `q-${qId}` ? (
-                            <Check className="h-3.5 w-3.5 text-green-400" />
+                            <Check className="h-3 w-3 text-emerald-400" />
                           ) : (
-                            <Copy className="h-3.5 w-3.5" />
+                            <Copy className="h-3 w-3" />
                           )}
                         </button>
-                        <div className="text-slate-400">
+                        <div className="text-[#52525B]">
                           {isExpanded ? (
-                            <ChevronUp className="h-4 w-4" />
+                            <ChevronUp className="h-3.5 w-3.5" />
                           ) : (
-                            <ChevronDown className="h-4 w-4" />
+                            <ChevronDown className="h-3.5 w-3.5" />
                           )}
                         </div>
                       </div>
                     </div>
 
-                    {/* Expandable Context & Answer Framework */}
                     {isExpanded && (
-                      <div className="px-4 pb-4 pt-1 border-t border-slate-800/80 bg-slate-950/40 space-y-3 text-xs">
+                      <div className="px-3 pb-3 pt-1 border-t border-[#27272A] bg-[#0A0A0B] space-y-2.5 text-xs">
                         {/* Why Asked */}
-                        <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800/80 space-y-1">
-                          <div className="flex items-center gap-1.5 text-indigo-400 font-semibold uppercase text-[11px] tracking-wider">
-                            <HelpCircle className="h-3.5 w-3.5" />
-                            Interviewer Intent & Key Signals
+                        <div className="p-2.5 rounded bg-[#121214] border border-[#27272A] space-y-1">
+                          <div className="flex items-center gap-1 text-indigo-400 font-mono text-[11px]">
+                            <HelpCircle className="h-3 w-3" />
+                            <span>Interviewer Intent</span>
                           </div>
-                          <p className="text-slate-300 leading-relaxed">
+                          <p className="text-[#A1A1AA] leading-relaxed">
                             {q.context_or_why_asked}
                           </p>
                         </div>
 
                         {/* Suggested Framework */}
-                        <div className="p-3 rounded-lg bg-purple-950/20 border border-purple-900/30 space-y-1.5">
+                        <div className="p-2.5 rounded bg-[#121214] border border-[#27272A] space-y-1">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 text-purple-300 font-semibold uppercase text-[11px] tracking-wider">
-                              <ShieldCheck className="h-3.5 w-3.5 text-purple-400" />
-                              Recommended Answer Framework / Strategy
+                            <div className="flex items-center gap-1 text-indigo-400 font-mono text-[11px]">
+                              <ShieldCheck className="h-3 w-3" />
+                              <span>Answer Strategy & Framework</span>
                             </div>
                             <button
                               type="button"
@@ -483,61 +459,61 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
                                 handleCopyText(
                                   q.sample_answer_framework,
                                   `ans-${qId}`,
-                                  'Copied answer framework to clipboard!',
+                                  'Copied answer framework',
                                 )
                               }
-                              className="text-[11px] text-purple-400 hover:text-purple-300 flex items-center gap-1"
+                              className="text-[10px] font-mono text-[#71717A] hover:text-[#FAFAFA] flex items-center gap-1"
                             >
                               {copiedKey === `ans-${qId}` ? (
                                 <>
-                                  <Check className="h-3 w-3 text-green-400" />
-                                  Copied
+                                  <Check className="h-2.5 w-2.5 text-emerald-400" />
+                                  copied
                                 </>
                               ) : (
                                 <>
-                                  <Copy className="h-3 w-3" />
-                                  Copy Strategy
+                                  <Copy className="h-2.5 w-2.5" />
+                                  copy
                                 </>
                               )}
                             </button>
                           </div>
-                          <div className="text-slate-300 whitespace-pre-line leading-relaxed font-sans bg-slate-950/60 p-2.5 rounded border border-purple-500/10">
+                          <div className="text-[#A1A1AA] whitespace-pre-line leading-relaxed font-mono text-xs bg-[#0A0A0B] p-2 rounded border border-[#27272A]">
                             {q.sample_answer_framework}
                           </div>
                         </div>
 
-                        {/* Interactive AI Answer Evaluation & STAR Coach */}
-                        <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-2.5">
+                        {/* Interactive AI Answer Evaluation */}
+                        <div className="p-2.5 rounded bg-[#121214] border border-[#27272A] space-y-2">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 text-sky-400 font-semibold uppercase text-[11px] tracking-wider">
-                              <Brain className="h-3.5 w-3.5 text-sky-400" />
-                              Practice & AI STAR Evaluation
+                            <div className="flex items-center gap-1 text-[#FAFAFA] font-mono text-[11px]">
+                              <Brain className="h-3 w-3 text-indigo-400" />
+                              <span>Practice Answer (STAR Grade)</span>
                             </div>
                             <button
                               type="button"
                               onClick={() =>
                                 setPracticeOpen((prev) => ({ ...prev, [qId]: !prev[qId] }))
                               }
-                              className="text-[11px] text-sky-400 hover:text-sky-300 font-medium"
+                              className="text-[10px] font-mono text-indigo-400 hover:text-indigo-300"
                             >
-                              {practiceOpen[qId] ? 'Hide Practice Box' : 'Type Your Answer →'}
+                              {practiceOpen[qId] ? 'hide box' : 'practice answer →'}
                             </button>
                           </div>
 
                           {practiceOpen[qId] && (
-                            <div className="space-y-2.5 pt-1">
+                            <div className="space-y-2 pt-1">
                               <textarea
                                 value={userAnswers[qId] || ''}
                                 onChange={(e) =>
                                   setUserAnswers((prev) => ({ ...prev, [qId]: e.target.value }))
                                 }
-                                placeholder="Type or paste your spoken practice answer here (e.g. When at my previous role, I noticed high API latency... I implemented indexing... which reduced latency by 40%)..."
-                                rows={4}
-                                className="w-full text-xs p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                                placeholder="Type your spoken answer here using Situation, Task, Action, Result..."
+                                rows={3}
+                                className="w-full text-xs p-2 rounded bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500 font-mono"
                               />
 
                               <div className="flex items-center justify-between gap-2">
-                                <span className="text-[11px] text-slate-400">
+                                <span className="text-[10px] font-mono text-[#52525B]">
                                   {(userAnswers[qId] || '').split(/\s+/).filter(Boolean).length} words
                                 </span>
                                 <Button
@@ -545,17 +521,17 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
                                   size="sm"
                                   onClick={() => handleEvaluateAnswer(qId, q.question, q.category)}
                                   disabled={evaluatingQuestionId === qId || !(userAnswers[qId] || '').trim()}
-                                  className="text-xs py-1.5 px-3 bg-sky-600 hover:bg-sky-500 text-white shadow-sm flex items-center gap-1.5"
+                                  className="text-xs py-1"
                                 >
                                   {evaluatingQuestionId === qId ? (
                                     <>
-                                      <RefreshCw className="h-3 w-3 animate-spin" />
-                                      <span>Grading STAR Rubric...</span>
+                                      <RefreshCw className="h-3 w-3 animate-spin mr-1" />
+                                      Grading...
                                     </>
                                   ) : (
                                     <>
-                                      <Sparkles className="h-3 w-3" />
-                                      <span>Grade Answer (STAR)</span>
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      Grade Answer
                                     </>
                                   )}
                                 </Button>
@@ -563,90 +539,53 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
 
                               {/* Evaluation Results Card */}
                               {evaluations[qId] && (
-                                <div className="p-3 rounded-lg bg-slate-950 border border-sky-900/50 space-y-2.5 animate-in fade-in duration-200">
-                                  {/* Score Banner */}
-                                  <div className="flex items-center justify-between p-2 rounded bg-slate-900 border border-slate-800">
-                                    <div className="flex items-center gap-2">
-                                      <Award className="h-4 w-4 text-amber-400" />
-                                      <span className="font-bold text-xs text-white">
-                                        Overall Score: {evaluations[qId].score}/100
-                                      </span>
-                                    </div>
-                                    <span
-                                      className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                                        evaluations[qId].verdict === 'EXCELLENT'
-                                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                                          : evaluations[qId].verdict === 'SOLID'
-                                          ? 'bg-sky-950 text-sky-300 border border-sky-800'
-                                          : 'bg-amber-950 text-amber-300 border border-amber-800'
-                                      }`}
-                                    >
-                                      {evaluations[qId].verdict}
+                                <div className="p-2.5 rounded bg-[#0A0A0B] border border-[#27272A] space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-mono text-xs text-[#FAFAFA]">
+                                      Score: <strong className="text-emerald-400">{evaluations[qId].score}/100</strong>
+                                    </span>
+                                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#18181B] border border-[#27272A] text-[#A1A1AA]">
+                                      {evaluations[qId].verdict.toLowerCase()}
                                     </span>
                                   </div>
 
-                                  {/* STAR Breakdown */}
-                                  <div className="grid grid-cols-2 gap-1.5">
+                                  <div className="grid grid-cols-2 gap-1 font-mono text-[10px]">
                                     {Object.entries(evaluations[qId].star_breakdown).map(
                                       ([key, item]) => (
                                         <div
                                           key={key}
-                                          className="p-1.5 rounded bg-slate-900/60 border border-slate-800 text-[11px]"
+                                          className="p-1 rounded bg-[#121214] border border-[#27272A]"
                                         >
-                                          <div className="flex items-center justify-between font-semibold capitalize text-slate-300">
-                                            <span>{key}</span>
-                                            <span
-                                              className={
-                                                item.present ? 'text-emerald-400' : 'text-amber-400'
-                                              }
-                                            >
-                                              {item.present ? '✓ Included' : '⚠ Missing'}
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-[#A1A1AA]">{key}</span>
+                                            <span className={item.present ? 'text-emerald-400 font-mono' : 'text-amber-400 font-mono'}>
+                                              {item.present ? 'PASS' : 'MISSING'}
                                             </span>
                                           </div>
-                                          <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
-                                            {item.comment}
-                                          </p>
                                         </div>
                                       ),
                                     )}
                                   </div>
 
-                                  {/* Strengths & Improvements */}
-                                  <div className="space-y-1.5 text-[11px]">
-                                    {evaluations[qId].strengths.length > 0 && (
-                                      <div className="text-emerald-400">
-                                        <strong>Strengths:</strong>{' '}
-                                        {evaluations[qId].strengths.join(' • ')}
-                                      </div>
-                                    )}
-                                    {evaluations[qId].improvements.length > 0 && (
-                                      <div className="text-amber-300">
-                                        <strong>To Improve:</strong>{' '}
-                                        {evaluations[qId].improvements.join(' • ')}
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Model Improved Answer */}
                                   {evaluations[qId].improved_answer && (
-                                    <div className="p-2 rounded bg-indigo-950/30 border border-indigo-900/40 text-[11px] text-slate-300 space-y-1">
-                                      <div className="flex items-center justify-between text-indigo-300 font-semibold">
-                                        <span>Model Revision (High Impact):</span>
+                                    <div className="p-2 rounded bg-[#121214] border border-[#27272A] text-[11px] text-[#A1A1AA] space-y-1">
+                                      <div className="flex items-center justify-between font-mono text-[10px] text-indigo-400">
+                                        <span>Model Revision:</span>
                                         <button
                                           type="button"
                                           onClick={() =>
                                             handleCopyText(
                                               evaluations[qId].improved_answer,
                                               `eval-ans-${qId}`,
-                                              'Copied model answer!',
+                                              'Copied model answer',
                                             )
                                           }
-                                          className="text-[10px] text-indigo-400 hover:text-indigo-200"
+                                          className="hover:underline"
                                         >
-                                          {copiedKey === `eval-ans-${qId}` ? 'Copied' : 'Copy'}
+                                          {copiedKey === `eval-ans-${qId}` ? 'copied' : 'copy'}
                                         </button>
                                       </div>
-                                      <p className="italic leading-relaxed">
+                                      <p className="italic leading-relaxed font-mono">
                                         "{evaluations[qId].improved_answer}"
                                       </p>
                                     </div>
@@ -662,30 +601,6 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
                 );
               })}
             </div>
-          </div>
-        )}
-
-        {/* Initial Empty State before generation */}
-        {!prepResult && !isGenerating && (
-          <div className="p-8 text-center rounded-xl bg-slate-900/30 border border-dashed border-slate-800 space-y-3">
-            <div className="h-12 w-12 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center mx-auto ring-1 ring-purple-500/20">
-              <Sparkles className="h-6 w-6" />
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-slate-200">
-                Ready to practice for {roleTitle} at {companyName}?
-              </h4>
-              <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
-                Choose your interview format above and click Generate to receive 5 targeted technical & behavioral practice questions with model answer frameworks.
-              </p>
-            </div>
-            <Button
-              onClick={() => handleGenerate()}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs px-5 py-2 font-medium shadow-md shadow-purple-600/20"
-            >
-              <Sparkles className="h-3.5 w-3.5 mr-2" />
-              Generate Practice Questions
-            </Button>
           </div>
         )}
       </div>

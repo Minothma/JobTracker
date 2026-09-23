@@ -5,7 +5,6 @@ import { useAuth } from '../../lib/auth-context';
 import { apiFetch } from '../../lib/api-client';
 import { Button } from '../../components/ui/Button';
 import { Input, Select } from '../../components/ui/Input';
-import { Badge } from '../../components/ui/Badge';
 import { useToast } from '../../components/ui/Toast';
 import {
   User,
@@ -13,16 +12,12 @@ import {
   Sliders,
   Database,
   KeyRound,
-  Download,
   CheckCircle2,
-  AlertCircle,
   Briefcase,
   FileText,
   Video,
   Award,
-  DollarSign,
   Globe,
-  Bell,
   HardDriveDownload,
   Lock,
 } from 'lucide-react';
@@ -165,131 +160,135 @@ export default function SettingsPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-12">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-          Account & Preferences
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Manage your credentials, default application settings, and offline data backups
-        </p>
+      <div className="p-5 rounded-lg bg-[#121214] border border-[#27272A] text-zinc-100">
+        <div className="space-y-1">
+          <h1 className="text-base sm:text-lg font-semibold tracking-tight text-[#FAFAFA]">
+            Account & Preferences
+          </h1>
+          <p className="text-xs text-zinc-400">
+            Manage your credentials, default application settings, and offline data backups
+          </p>
+        </div>
       </div>
 
       {/* Account Overview Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-            <Briefcase className="w-4 h-4 text-sky-500" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div className="bg-[#121214] border border-[#27272A] rounded-lg p-3.5">
+          <div className="flex items-center gap-2 text-zinc-400 text-xs font-mono">
+            <Briefcase className="w-3.5 h-3.5 text-zinc-400" />
             <span>Applications</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
+          <p className="text-xl font-mono font-semibold text-[#FAFAFA] mt-2">
             {loadingStats ? '—' : stats?.applications_count ?? 0}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-            <FileText className="w-4 h-4 text-indigo-500" />
+        <div className="bg-[#121214] border border-[#27272A] rounded-lg p-3.5">
+          <div className="flex items-center gap-2 text-zinc-400 text-xs font-mono">
+            <FileText className="w-3.5 h-3.5 text-zinc-400" />
             <span>Resumes</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
+          <p className="text-xl font-mono font-semibold text-[#FAFAFA] mt-2">
             {loadingStats ? '—' : stats?.resumes_count ?? 0}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-            <Video className="w-4 h-4 text-amber-500" />
+        <div className="bg-[#121214] border border-[#27272A] rounded-lg p-3.5">
+          <div className="flex items-center gap-2 text-zinc-400 text-xs font-mono">
+            <Video className="w-3.5 h-3.5 text-zinc-400" />
             <span>Interviews</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
+          <p className="text-xl font-mono font-semibold text-[#FAFAFA] mt-2">
             {loadingStats ? '—' : stats?.interviews_count ?? 0}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-            <Award className="w-4 h-4 text-emerald-500" />
+        <div className="bg-[#121214] border border-[#27272A] rounded-lg p-3.5">
+          <div className="flex items-center gap-2 text-zinc-400 text-xs font-mono">
+            <Award className="w-3.5 h-3.5 text-zinc-400" />
             <span>Offers</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
+          <p className="text-xl font-mono font-semibold text-emerald-400 mt-2">
             {loadingStats ? '—' : stats?.offers_count ?? 0}
           </p>
         </div>
       </div>
 
       {/* Main Settings Navigation & Content */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-[#121214] border border-[#27272A] rounded-lg overflow-hidden">
         {/* Navigation Tabs */}
-        <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+        <div className="flex border-b border-[#27272A] bg-[#0A0A0B] p-1 gap-1">
           <button
             onClick={() => setActiveTab('account')}
-            className={`flex items-center gap-2 px-6 py-3.5 text-sm font-semibold border-b-2 transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-md transition-colors ${
               activeTab === 'account'
-                ? 'border-sky-500 text-sky-600 dark:text-sky-400 bg-white dark:bg-slate-900'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'bg-[#18181B] text-zinc-100 border border-[#27272A]'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            <Shield className="w-4 h-4" />
+            <Shield className="w-3.5 h-3.5 text-indigo-400" />
             <span>Security & Credentials</span>
           </button>
 
           <button
             onClick={() => setActiveTab('preferences')}
-            className={`flex items-center gap-2 px-6 py-3.5 text-sm font-semibold border-b-2 transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-md transition-colors ${
               activeTab === 'preferences'
-                ? 'border-sky-500 text-sky-600 dark:text-sky-400 bg-white dark:bg-slate-900'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'bg-[#18181B] text-zinc-100 border border-[#27272A]'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            <Sliders className="w-4 h-4" />
+            <Sliders className="w-3.5 h-3.5 text-zinc-400" />
             <span>Defaults & Preferences</span>
           </button>
 
           <button
             onClick={() => setActiveTab('data')}
-            className={`flex items-center gap-2 px-6 py-3.5 text-sm font-semibold border-b-2 transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-mono rounded-md transition-colors ${
               activeTab === 'data'
-                ? 'border-sky-500 text-sky-600 dark:text-sky-400 bg-white dark:bg-slate-900'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ? 'bg-[#18181B] text-zinc-100 border border-[#27272A]'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            <Database className="w-4 h-4" />
+            <Database className="w-3.5 h-3.5 text-zinc-400" />
             <span>Data & Backups</span>
           </button>
         </div>
 
         {/* Tab 1: Account & Security */}
         {activeTab === 'account' && (
-          <div className="p-6 sm:p-8 space-y-8">
+          <div className="p-5 sm:p-6 space-y-6">
             {/* User Info Strip */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 gap-4">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-lg flex items-center justify-center shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-md bg-[#0A0A0B] border border-[#27272A] gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-md bg-[#18181B] text-indigo-400 border border-[#27272A] font-mono font-semibold text-xs flex items-center justify-center">
                   {user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  <h3 className="text-xs font-semibold text-[#FAFAFA]">
                     {user?.email}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  <p className="text-[11px] font-mono text-zinc-400 mt-0.5">
                     Account ID: {user?.id}
                   </p>
                 </div>
               </div>
-              <Badge variant="success">Active Session</Badge>
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 w-fit">
+                Active Session
+              </span>
             </div>
 
             {/* Password Change Form */}
-            <div className="space-y-4 max-w-lg">
-              <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-bold text-base">
-                <KeyRound className="w-5 h-5 text-sky-500" />
+            <div className="space-y-3 max-w-lg">
+              <div className="flex items-center gap-2 text-[#FAFAFA] font-semibold text-sm">
+                <KeyRound className="w-4 h-4 text-zinc-400" />
                 <h3>Change Account Password</h3>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-zinc-400">
                 Ensure your account is protected with a secure password containing at least 8 characters.
               </p>
 
-              <form onSubmit={handlePasswordChange} className="space-y-4 pt-2">
+              <form onSubmit={handlePasswordChange} className="space-y-3.5 pt-1">
                 <Input
                   label="Current Password *"
                   type="password"
@@ -318,8 +317,8 @@ export default function SettingsPage() {
                 />
 
                 <div className="pt-2">
-                  <Button type="submit" isLoading={isChangingPassword}>
-                    <Lock className="w-4 h-4 mr-1.5" />
+                  <Button type="submit" size="sm" isLoading={isChangingPassword} className="text-xs font-mono">
+                    <Lock className="w-3.5 h-3.5 mr-1.5" />
                     Update Password
                   </Button>
                 </div>
@@ -330,17 +329,17 @@ export default function SettingsPage() {
 
         {/* Tab 2: Preferences */}
         {activeTab === 'preferences' && (
-          <div className="p-6 sm:p-8 space-y-6 max-w-xl">
+          <div className="p-5 sm:p-6 space-y-5 max-w-xl">
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <h3 className="text-sm font-semibold text-[#FAFAFA]">
                 Application Defaults
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-zinc-400 mt-0.5">
                 Customize your preferred currencies and work mode for quicker application creation.
               </p>
             </div>
 
-            <form onSubmit={handleSavePreferences} className="space-y-5">
+            <form onSubmit={handleSavePreferences} className="space-y-4">
               <Select
                 label="Preferred Default Currency"
                 options={CURRENCIES}
@@ -355,86 +354,86 @@ export default function SettingsPage() {
                 onChange={(e) => setDefaultWorkMode(e.target.value)}
               />
 
-              <div className="pt-2">
+              <div className="pt-1">
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={emailAlertsEnabled}
                     onChange={(e) => setEmailAlertsEnabled(e.target.checked)}
-                    className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300 dark:border-slate-700 dark:bg-slate-900"
+                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-[#27272A] bg-[#0A0A0B]"
                   />
                   <div>
-                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                      Enable Daily Stale Application Alerts (AWS SES)
+                    <span className="text-xs font-medium text-zinc-200">
+                      Enable Daily Stale Application Alerts
                     </span>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Receive morning email reminders for applications waiting &gt;14 days without an interview.
+                    <p className="text-[11px] text-zinc-400">
+                      Receive morning reminders for applications waiting &gt;14 days without an interview.
                     </p>
                   </div>
                 </label>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                <Button type="submit">
-                  <Sliders className="w-4 h-4 mr-1.5" />
+              <div className="pt-3 border-t border-[#27272A]">
+                <Button type="submit" size="sm" className="text-xs font-mono">
+                  <Sliders className="w-3.5 h-3.5 mr-1.5" />
                   Save Preferences
                 </Button>
               </div>
             </form>
 
             {/* 1-Click Browser Job Clipper Bookmarklet Widget */}
-            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="mt-6 pt-5 border-t border-[#27272A] space-y-2.5">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                  <Globe className="w-4 h-4" />
+                <div className="p-1 rounded bg-[#18181B] text-zinc-300 border border-[#27272A]">
+                  <Globe className="w-3.5 h-3.5 text-indigo-400" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                <h4 className="text-xs font-semibold text-[#FAFAFA]">
                   1-Click Browser Job Clipper (Bookmarklet)
                 </h4>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Drag this button to your Bookmarks Bar (or right-click → bookmark). Whenever you visit a job posting on LinkedIn or Indeed, click the bookmarklet to clip it directly to JobTracker!
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Drag this button to your Bookmarks Bar. Whenever you visit a job posting on LinkedIn or Indeed, click the bookmarklet to clip it directly to JobTracker.
               </p>
 
               <div className="pt-1">
                 <a
-                  href={`javascript:(function(){var u=window.location.href;var t=document.title;var s=window.getSelection?window.getSelection().toString():'';var target='${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/board?clip_url='+encodeURIComponent(u)+'&clip_title='+encodeURIComponent(t)+'&clip_desc='+encodeURIComponent(s);window.open(target,'_blank');})();`}
+                  href={`javascript:(function(){var u=window.location.href;var t=document.title;var s=window.getSelection?window.getSelection().toString():'';var target='${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5000'}/board?clip_url='+encodeURIComponent(u)+'&clip_title='+encodeURIComponent(t)+'&clip_desc='+encodeURIComponent(s);window.open(target,'_blank');})();`}
                   onClick={(e) => {
                     e.preventDefault();
                     showToast('Drag this button to your browser Bookmarks Bar!', 'info');
                   }}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md cursor-grab active:cursor-grabbing select-none transition-transform hover:scale-105"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#18181B] hover:bg-[#27272A] border border-[#27272A] text-zinc-200 font-mono text-xs cursor-grab active:cursor-grabbing select-none transition-colors"
                   title="Drag me to your Bookmarks toolbar!"
                 >
-                  <span>📥 Clip to JobTracker</span>
+                  <Globe className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Clip to JobTracker</span>
                 </a>
               </div>
             </div>
           </div>
         )}
 
-
         {/* Tab 3: Data & Backups */}
         {activeTab === 'data' && (
-          <div className="p-6 sm:p-8 space-y-6">
+          <div className="p-5 sm:p-6 space-y-5">
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <h3 className="text-sm font-semibold text-[#FAFAFA]">
                 Data Portability & Offline Backup
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-zinc-400 mt-0.5">
                 Download a complete, offline copy of all your job applications, notes, interview rounds, offers, and linked resumes.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
               {/* Complete JSON Payload */}
-              <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30 flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 font-bold text-sm">
-                    <Database className="w-5 h-5" />
+              <div className="p-4 rounded-md border border-[#27272A] bg-[#0A0A0B] flex flex-col justify-between space-y-3.5">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-zinc-200 font-medium text-xs font-mono">
+                    <Database className="w-4 h-4 text-indigo-400" />
                     <span>Complete JSON Database Export</span>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <p className="text-xs text-zinc-400 leading-relaxed">
                     Exports everything structured: all applications, interview history, notes timeline, compensation matrices, and resume metadata in standard JSON format.
                   </p>
                 </div>
@@ -442,27 +441,28 @@ export default function SettingsPage() {
                 <Button
                   onClick={handleExportJsonBackup}
                   isLoading={isExportingJson}
-                  className="w-full justify-center bg-sky-600 hover:bg-sky-700 text-white"
+                  size="sm"
+                  className="w-full justify-center text-xs font-mono"
                 >
-                  <HardDriveDownload className="w-4 h-4 mr-1.5" />
+                  <HardDriveDownload className="w-3.5 h-3.5 mr-1.5" />
                   Download JSON Backup
                 </Button>
               </div>
 
               {/* Data Safety Info */}
-              <div className="p-5 rounded-xl border border-emerald-200 dark:border-emerald-950 bg-emerald-50/40 dark:bg-emerald-950/20 flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold text-sm">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              <div className="p-4 rounded-md border border-[#27272A] bg-[#0A0A0B] flex flex-col justify-between space-y-3.5">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-zinc-200 font-medium text-xs font-mono">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     <span>Data Privacy & Ownership</span>
                   </div>
-                  <p className="text-xs text-emerald-800/90 dark:text-emerald-300/90 leading-relaxed">
+                  <p className="text-xs text-zinc-400 leading-relaxed">
                     Your job application data, resume versions, and compensation numbers are strictly private to your account. You can backup or export your complete history anytime.
                   </p>
                 </div>
 
-                <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
-                  ✓ GDPR & Data Portability Compliant
+                <div className="text-[11px] font-mono text-emerald-400">
+                  Data Portability Compliant
                 </div>
               </div>
             </div>

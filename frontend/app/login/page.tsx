@@ -10,14 +10,12 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Sparkles,
   ArrowRight,
-  ShieldCheck,
-  Brain,
-  Zap,
-  TrendingUp,
-  Flame,
   CheckCircle2,
+  Terminal,
+  Cpu,
+  Layers,
+  Sparkles,
 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -48,130 +46,117 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="-my-6 -mx-4 sm:-mx-6 lg:-mx-8 min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-10 bg-slate-950 text-slate-100 relative overflow-hidden font-sans">
-      {/* Dynamic Ambient Background Glows */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-sky-500/10 blur-[130px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[500px] h-[350px] bg-indigo-600/10 blur-[130px] rounded-full pointer-events-none" />
-      <div className="absolute top-1/2 right-1/3 w-[300px] h-[300px] bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
-
+    <div className="-my-6 -mx-4 sm:-mx-6 lg:-mx-8 min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-10 bg-[#0A0A0B] text-[#FAFAFA] font-sans">
       {/* Main Container */}
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden bg-slate-900/60 backdrop-blur-2xl border border-slate-800 shadow-[0_0_60px_-15px_rgba(14,165,233,0.15)] relative z-10">
+      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 rounded-xl overflow-hidden bg-[#121214] border border-[#27272A] shadow-2xl">
         
-        {/* Left Side: Interactive Career OS Visual Showcase (55% width) */}
-        <div className="lg:col-span-7 p-8 sm:p-12 lg:p-14 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800/80 relative bg-gradient-to-br from-slate-900/90 via-slate-900/50 to-indigo-950/40">
+        {/* Left Side: Developer-first Product Highlights (55% width) */}
+        <div className="lg:col-span-7 p-8 sm:p-10 lg:p-12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#27272A] bg-[#0E0E10]">
           <div>
             {/* Top Brand Header */}
-            <Link href="/" className="inline-flex items-center gap-2.5 group mb-8">
-              <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-lg shadow-sky-500/25 group-hover:scale-105 transition-transform">
-                <Briefcase className="w-5 h-5" />
+            <Link href="/" className="inline-flex items-center gap-3 group mb-8">
+              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs font-mono font-bold">
+                JT
               </div>
               <div className="flex flex-col">
-                <span className="font-extrabold text-lg text-white tracking-tight">
-                  Job<span className="text-sky-400">Tracker</span>
+                <span className="font-semibold text-sm text-[#FAFAFA] tracking-tight">
+                  JobTracker
                 </span>
-                <span className="text-[10px] text-slate-400 font-mono -mt-1 tracking-wider uppercase">
-                  Enterprise AI Platform
+                <span className="text-[11px] text-[#71717A] font-mono tracking-tight">
+                  Personal Career OS
                 </span>
               </div>
             </Link>
 
             {/* Headline & Subtitle */}
             <div className="space-y-3 mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-300 text-xs font-semibold">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>Next-Gen Career Copilot</span>
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#18181B] border border-[#27272A] text-[#A1A1AA] text-xs font-mono">
+                <Terminal className="w-3.5 h-3.5 text-indigo-400" />
+                <span>v2.0 • Prosumer Edition</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.12]">
-                The AI-Powered Operating System for Your Career.
+              <h1 className="text-2xl sm:text-3xl font-semibold text-[#FAFAFA] tracking-tight leading-snug">
+                Your personal career operating system.
               </h1>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-lg">
-                Manage recruitment pipelines, practice with AI STAR mock interview coaches, and negotiate top compensation packages with data-driven leverage.
+              <p className="text-xs sm:text-sm text-[#A1A1AA] leading-relaxed max-w-md">
+                Manage applications across full pipelines, practice with AI STAR coaches, match ATS keywords, and negotiate top offers.
               </p>
             </div>
 
-            {/* Floating Superpower Live Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6">
-              {/* Card 1: AI STAR Prep */}
-              <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/90 space-y-1.5 hover:border-sky-500/40 transition-colors">
+            {/* Feature Highlights Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              {/* Feature 1 */}
+              <div className="p-3.5 rounded-lg bg-[#121214] border border-[#27272A] space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="p-1.5 rounded-lg bg-sky-500/10 text-sky-400">
-                    <Brain className="w-4 h-4" />
+                  <span className="text-xs font-medium text-[#FAFAFA] flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                    Kanban Pipeline
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800/80">
-                    94% Fit
-                  </span>
+                  <span className="text-[10px] font-mono text-[#71717A]">5 Stages</span>
                 </div>
-                <h4 className="text-xs font-bold text-white">AI STAR Interview Coach</h4>
-                <p className="text-[11px] text-slate-400">Instant answer grading & sample frameworks</p>
+                <p className="text-[11px] text-[#A1A1AA] leading-tight">Stage velocity metrics, deadline reminders, and custom tags.</p>
               </div>
 
-              {/* Card 2: Executive Scorecard */}
-              <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/90 space-y-1.5 hover:border-emerald-500/40 transition-colors">
+              {/* Feature 2 */}
+              <div className="p-3.5 rounded-lg bg-[#121214] border border-[#27272A] space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
-                    <ShieldCheck className="w-4 h-4" />
+                  <span className="text-xs font-medium text-[#FAFAFA] flex items-center gap-1.5">
+                    <Cpu className="w-3.5 h-3.5 text-emerald-400" />
+                    STAR Coach
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-950 text-sky-300 border border-sky-800/80">
-                    Grade A+
-                  </span>
+                  <span className="text-[10px] font-mono text-emerald-400/90">AI Powered</span>
                 </div>
-                <h4 className="text-xs font-bold text-white">Pipeline Health Scorecard</h4>
-                <p className="text-[11px] text-slate-400">Conversion funnels & printable analytics</p>
+                <p className="text-[11px] text-[#A1A1AA] leading-tight">Instant mock interview feedback and structured answer frameworks.</p>
               </div>
 
-              {/* Card 3: Salary Negotiation Advisor */}
-              <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/90 space-y-1.5 hover:border-indigo-500/40 transition-colors">
+              {/* Feature 3 */}
+              <div className="p-3.5 rounded-lg bg-[#121214] border border-[#27272A] space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
-                    <TrendingUp className="w-4 h-4" />
+                  <span className="text-xs font-medium text-[#FAFAFA] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    ATS Matcher
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800/80">
-                    +15% Counter
-                  </span>
+                  <span className="text-[10px] font-mono text-amber-400/90">Keyword Score</span>
                 </div>
-                <h4 className="text-xs font-bold text-white">Salary Negotiation Advisor</h4>
-                <p className="text-[11px] text-slate-400">Phone scripts & counter-offer emails</p>
+                <p className="text-[11px] text-[#A1A1AA] leading-tight">Gap analysis and targeted resume bullet recommendations.</p>
               </div>
 
-              {/* Card 4: 1-Click Clipper & Streaks */}
-              <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/90 space-y-1.5 hover:border-amber-500/40 transition-colors">
+              {/* Feature 4 */}
+              <div className="p-3.5 rounded-lg bg-[#121214] border border-[#27272A] space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
-                    <Flame className="w-4 h-4 text-amber-400 fill-amber-400" />
+                  <span className="text-xs font-medium text-[#FAFAFA] flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 text-sky-400" />
+                    Offer Advisor
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800/80">
-                    5-Day Streak
-                  </span>
+                  <span className="text-[10px] font-mono text-[#71717A]">Counter Scripts</span>
                 </div>
-                <h4 className="text-xs font-bold text-white">1-Click Clipper & CRM</h4>
-                <p className="text-[11px] text-slate-400">Instant job parse & recruiter tracking</p>
+                <p className="text-[11px] text-[#A1A1AA] leading-tight">Total compensation breakdowns and negotiation email drafts.</p>
               </div>
             </div>
           </div>
 
-          {/* Left Footer Trust Markers */}
-          <div className="pt-6 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+          {/* Left Footer */}
+          <div className="pt-6 border-t border-[#27272A] flex items-center justify-between text-[11px] text-[#71717A] font-mono">
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> 100% Free & Open-Source
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 100% Free & Open-Source
             </span>
-            <span>&copy; {new Date().getFullYear()} JobTracker OS</span>
+            <span>&copy; {new Date().getFullYear()} JobTracker</span>
           </div>
         </div>
 
-        {/* Right Side: Sleek Authentication Form (45% width) */}
-        <div className="lg:col-span-5 p-8 sm:p-12 flex flex-col justify-between bg-slate-900/40">
+        {/* Right Side: Authentication Form (45% width) */}
+        <div className="lg:col-span-5 p-8 sm:p-10 flex flex-col justify-between bg-[#121214]">
           <div>
-            <div className="space-y-2 mb-8">
-              <h2 className="text-2xl font-extrabold text-white tracking-tight">
-                Welcome Back
+            <div className="space-y-1 mb-6">
+              <h2 className="text-lg font-semibold text-[#FAFAFA] tracking-tight">
+                Sign In
               </h2>
-              <p className="text-xs text-slate-400">
-                Sign in to your account to access your applications pipeline.
+              <p className="text-xs text-[#A1A1AA]">
+                Enter your credentials to access your pipeline.
               </p>
             </div>
 
             {error && (
-              <div className="mb-6 p-3.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs flex items-center gap-2.5 animate-in fade-in">
+              <div className="mb-5 p-3 rounded-md bg-rose-950/30 border border-rose-900/60 text-rose-300 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                 <span>{error}</span>
               </div>
@@ -180,21 +165,21 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email Input */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-slate-300">
-                  Email Address
+                <label className="block text-xs font-medium text-[#D4D4D8]">
+                  Email
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#71717A]">
                     <Mail className="w-4 h-4" />
                   </div>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@company.com"
+                    placeholder="name@example.com"
                     required
                     autoComplete="email"
-                    className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-slate-950/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all"
+                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-[#0A0A0B] border border-[#27272A] rounded-md text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
                   />
                 </div>
               </div>
@@ -202,18 +187,12 @@ export default function LoginPage() {
               {/* Password Input */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-semibold text-slate-300">
+                  <label className="block text-xs font-medium text-[#D4D4D8]">
                     Password
                   </label>
-                  <Link
-                    href="/register"
-                    className="text-xs font-semibold text-sky-400 hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
                 </div>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#71717A]">
                     <Lock className="w-4 h-4" />
                   </div>
                   <input
@@ -223,12 +202,12 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     required
                     autoComplete="current-password"
-                    className="w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm bg-slate-950/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all font-mono"
+                    className="w-full pl-9 pr-9 py-2 text-xs sm:text-sm bg-[#0A0A0B] border border-[#27272A] rounded-md text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#71717A] hover:text-[#FAFAFA] cursor-pointer"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -241,17 +220,17 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-600 hover:from-sky-400 hover:via-indigo-400 hover:to-purple-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                  className="w-full py-2.5 px-4 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isLoading ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span>Signing in...</span>
                     </>
                   ) : (
                     <>
-                      <span>Sign In to Dashboard</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <span>Sign In</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </>
                   )}
                 </button>
@@ -260,13 +239,13 @@ export default function LoginPage() {
           </div>
 
           {/* Bottom Switch to Register */}
-          <div className="mt-8 pt-6 border-t border-slate-800 text-center text-xs text-slate-400">
+          <div className="mt-8 pt-5 border-t border-[#27272A] text-center text-xs text-[#A1A1AA]">
             Don&apos;t have an account?{' '}
             <Link
               href="/register"
-              className="font-bold text-sky-400 hover:text-sky-300 hover:underline"
+              className="text-indigo-400 hover:text-indigo-300 font-medium"
             >
-              Sign Up for Free
+              Sign up
             </Link>
           </div>
         </div>

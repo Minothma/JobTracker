@@ -15,20 +15,20 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-md transition-all focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
 
   const variantStyles = {
-    primary: 'bg-sky-600 hover:bg-sky-700 text-white focus:ring-sky-500 dark:bg-sky-500 dark:hover:bg-sky-600 dark:text-slate-900',
-    secondary: 'bg-slate-200 hover:bg-slate-300 text-slate-900 focus:ring-slate-400 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100',
-    danger: 'bg-rose-600 hover:bg-rose-700 text-white focus:ring-rose-500',
-    outline: 'border border-slate-300 hover:bg-slate-100 text-slate-700 focus:ring-slate-400 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800',
-    ghost: 'hover:bg-slate-100 text-slate-700 focus:ring-slate-400 dark:hover:bg-slate-800 dark:text-slate-300',
+    primary: 'bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500/30 shadow-xs',
+    secondary: 'bg-[#18181B] hover:bg-[#27272A] text-zinc-200 border border-[#27272A] hover:border-[#3F3F46]',
+    danger: 'bg-rose-950/50 hover:bg-rose-900/50 text-rose-300 border border-rose-800/60',
+    outline: 'border border-[#27272A] hover:bg-[#18181B] hover:border-[#3F3F46] text-zinc-300',
+    ghost: 'hover:bg-[#18181B] text-zinc-400 hover:text-zinc-200',
   };
 
   const sizeStyles = {
     sm: 'text-xs px-2.5 py-1.5 gap-1.5',
-    md: 'text-sm px-4 py-2 gap-2',
-    lg: 'text-base px-5 py-2.5 gap-2.5',
+    md: 'text-xs sm:text-sm px-3.5 py-1.5 gap-2',
+    lg: 'text-sm px-4 py-2 gap-2',
   };
 
   return (
@@ -38,7 +38,7 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {isLoading && (
-        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" fill="none" viewBox="0 0 24 24">
+        <svg className="animate-spin -ml-0.5 mr-1.5 h-3.5 w-3.5 text-current" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
         </svg>

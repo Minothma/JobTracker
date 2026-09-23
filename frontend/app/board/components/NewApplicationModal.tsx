@@ -13,10 +13,7 @@ import {
   Sparkles,
   RefreshCw,
   Link as LinkIcon,
-  Zap,
-  FileText,
   CheckCircle2,
-  Tag,
 } from 'lucide-react';
 
 interface NewApplicationModalProps {
@@ -67,7 +64,6 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Reset form or populate from initialData
       setQuickUrl(initialData?.job_posting_url || '');
       setCompanyName(initialData?.company_name || '');
       setRoleTitle(initialData?.role_title || '');
@@ -88,7 +84,6 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
       setShowAdvanced(Boolean(initialData?.job_description));
       setError(null);
 
-      // Fetch user's resumes
       apiFetch<Resume[]>('/resumes')
         .then((data) => setResumes(data))
         .catch(() => setResumes([]));
@@ -235,83 +230,81 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
   ];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add New Application" maxWidth="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title="Add Application" maxWidth="lg">
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-rose-50 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 text-sm">
+        <div className="mb-4 p-3 rounded-md bg-rose-950/40 border border-rose-900/60 text-rose-300 text-xs">
           {error}
         </div>
       )}
 
-      {/* AI Smart Auto-Fill Hub (Text Paste & Link Scraper) */}
-      <div className="mb-5 p-3.5 rounded-2xl bg-gradient-to-br from-indigo-950/40 via-sky-950/40 to-slate-900 border border-sky-500/20 shadow-md">
+      {/* AI Auto-Fill Container */}
+      <div className="mb-5 p-3 rounded-lg bg-[#0E0E10] border border-[#27272A]">
         {/* Tab switchers */}
-        <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-white/10">
-          <div className="flex items-center gap-1.5 p-0.5 rounded-lg bg-slate-900/80 border border-slate-800">
+        <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-[#27272A]">
+          <div className="flex items-center gap-1 font-mono text-xs">
             <button
               type="button"
               onClick={() => setAutoFillMode('SMART_PASTE')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors ${
                 autoFillMode === 'SMART_PASTE'
-                  ? 'bg-sky-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-[#27272A] text-[#FAFAFA]'
+                  : 'text-[#71717A] hover:text-[#FAFAFA]'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>AI Smart Paste (Instant Extract)</span>
+              <Sparkles className="w-3 h-3 text-indigo-400" />
+              <span>Smart Paste</span>
             </button>
             <button
               type="button"
               onClick={() => setAutoFillMode('URL_SCRAPE')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors ${
                 autoFillMode === 'URL_SCRAPE'
-                  ? 'bg-sky-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-[#27272A] text-[#FAFAFA]'
+                  : 'text-[#71717A] hover:text-[#FAFAFA]'
               }`}
             >
-              <LinkIcon className="w-3.5 h-3.5 text-sky-300" />
+              <LinkIcon className="w-3 h-3 text-[#71717A]" />
               <span>URL Scraper</span>
             </button>
           </div>
 
-          <span className="hidden sm:inline-block text-[11px] text-sky-400 font-medium">
-            Powered by Google Gemini
+          <span className="text-[10px] font-mono text-[#71717A]">
+            Gemini AI
           </span>
         </div>
 
-        {/* Tab 1: AI Smart Paste (Text / Raw Description) */}
+        {/* Tab 1: AI Smart Paste */}
         {autoFillMode === 'SMART_PASTE' ? (
-          <div className="space-y-2.5 animate-in fade-in duration-150">
-            <div className="relative">
-              <textarea
-                rows={3}
-                placeholder="Paste raw job description, LinkedIn post, or email text here (e.g., 'Looking for a Senior Full Stack Developer at Netflix. Remote. $140k-$170k USD...')..."
-                value={smartPasteText}
-                onChange={(e) => setSmartPasteText(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-950/80 border border-slate-700/80 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 font-sans"
-              />
-            </div>
+          <div className="space-y-2">
+            <textarea
+              rows={3}
+              placeholder="Paste raw job description, LinkedIn post, or email text here..."
+              value={smartPasteText}
+              onChange={(e) => setSmartPasteText(e.target.value)}
+              className="w-full px-3 py-2 text-xs bg-[#0A0A0B] border border-[#27272A] rounded-md text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500 font-mono"
+            />
 
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                <span>Detects: Company, Role, Salary, Location, Work Mode & Skills</span>
-              </div>
+              <span className="text-[11px] font-mono text-[#71717A]">
+                Detects company, role, salary, work mode & key skills
+              </span>
 
               <Button
                 type="button"
                 size="sm"
                 onClick={handleParseJobText}
                 disabled={isParsingText || !smartPasteText.trim()}
-                className="text-xs bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white shadow-sm shrink-0"
+                className="text-xs"
               >
                 {isParsingText ? (
                   <>
-                    <RefreshCw className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                    Analyzing with AI...
+                    <RefreshCw className="h-3 w-3 mr-1.5 animate-spin" />
+                    Parsing...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-3.5 w-3.5 mr-1.5 text-amber-300" />
-                    Auto-Fill Form with AI
+                    <Sparkles className="h-3 w-3 mr-1.5" />
+                    Auto-Fill
                   </>
                 )}
               </Button>
@@ -319,14 +312,14 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
 
             {/* Detected Skills badges */}
             {detectedSkills.length > 0 && (
-              <div className="pt-2 border-t border-white/5 flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Extracted Skills:
+              <div className="pt-2 border-t border-[#27272A] flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Extracted skills:
                 </span>
                 {detectedSkills.map((skill, idx) => (
                   <span
                     key={idx}
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono"
+                    className="text-[10px] px-1.5 py-0.2 rounded bg-[#18181B] text-emerald-400 border border-[#27272A] font-mono"
                   >
                     {skill}
                   </span>
@@ -336,16 +329,16 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
           </div>
         ) : (
           /* Tab 2: URL Scraper */
-          <div className="space-y-2 animate-in fade-in duration-150">
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
-                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#71717A]" />
                 <input
                   type="url"
-                  placeholder="Paste job posting URL (e.g. https://careers.company.com/job/...)"
+                  placeholder="https://careers.company.com/job/..."
                   value={quickUrl}
                   onChange={(e) => setQuickUrl(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950/80 border border-slate-700/80 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#0A0A0B] border border-[#27272A] rounded-md text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500"
                 />
               </div>
               <Button
@@ -353,33 +346,30 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
                 size="sm"
                 onClick={handleScrapeUrl}
                 disabled={isScraping || !quickUrl.trim()}
-                className="text-xs bg-sky-600 hover:bg-sky-500 text-white shrink-0"
+                className="text-xs"
               >
                 {isScraping ? (
                   <>
-                    <RefreshCw className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    <RefreshCw className="h-3 w-3 mr-1.5 animate-spin" />
                     Extracting...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                    Extract Link
+                    <Sparkles className="h-3 w-3 mr-1.5" />
+                    Extract
                   </>
                 )}
               </Button>
             </div>
-            <p className="text-[10px] text-slate-400">
-              Scrapes OpenGraph and schema metadata from supported job boards.
-            </p>
           </div>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="space-y-3.5 max-h-[70vh] overflow-y-auto pr-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <Input
             label="Company Name *"
-            placeholder="e.g. Google, Stripe, Canva"
+            placeholder="e.g. Acme Corp"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
             required
@@ -387,14 +377,14 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
 
           <Input
             label="Role Title *"
-            placeholder="e.g. Full-Stack Engineer, Intern"
+            placeholder="e.g. Software Engineer"
             value={roleTitle}
             onChange={(e) => setRoleTitle(e.target.value)}
             required
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           <Input
             label="Applied Date *"
             type="date"
@@ -418,44 +408,44 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <Input
             label="Job Posting URL"
             type="url"
-            placeholder="https://careers.company.com/job/123"
+            placeholder="https://careers.example.com/job/123"
             value={jobPostingUrl}
             onChange={(e) => setJobPostingUrl(e.target.value)}
           />
 
           <Input
-            label="Location (City / Country)"
-            placeholder="e.g. San Francisco, CA / Colombo, LK"
+            label="Location"
+            placeholder="e.g. San Francisco, CA / Remote"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
         </div>
 
         <Select
-          label="Attach Tailored Resume Version"
+          label="Attach Resume Version"
           options={resumeOptions}
           value={resumeId}
           onChange={(e) => setResumeId(e.target.value)}
         />
 
-        {/* Toggle Advanced Details */}
+        {/* Toggle Additional Fields */}
         <div className="pt-1">
           <button
             type="button"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center gap-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline"
+            className="flex items-center gap-1 text-xs font-mono text-[#A1A1AA] hover:text-[#FAFAFA] transition-colors"
           >
             {showAdvanced ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            <span>{showAdvanced ? 'Hide Additional Fields' : 'Add Target Salary, Recruiter Contact & Job Description'}</span>
+            <span>{showAdvanced ? 'hide optional fields' : '+ target salary, recruiter contact & JD'}</span>
           </button>
         </div>
 
         {showAdvanced && (
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-3 animate-in fade-in">
+          <div className="p-3.5 rounded-lg bg-[#0E0E10] border border-[#27272A] space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input
                 label="Target Salary Min ($)"
@@ -480,14 +470,14 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input
-                label="Recruiter / Contact Name"
+                label="Recruiter Name"
                 placeholder="e.g. Sarah Connor"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
               />
 
               <Input
-                label="Recruiter Contact Email"
+                label="Recruiter Email"
                 type="email"
                 placeholder="e.g. recruiter@company.com"
                 value={contactEmail}
@@ -496,25 +486,25 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Full Job Description (Paste JD for AI Matcher)
+              <label className="block text-xs font-medium text-[#D4D4D8] mb-1">
+                Job Description
               </label>
               <textarea
                 rows={4}
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
                 placeholder="Paste the requirements and responsibilities here..."
-                className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 font-mono"
+                className="w-full px-3 py-2 text-xs bg-[#0A0A0B] border border-[#27272A] rounded-md text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500 font-mono"
               />
             </div>
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-          <Button type="button" variant="outline" onClick={onClose}>
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#27272A]">
+          <Button type="button" variant="outline" size="sm" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" isLoading={isSubmitting}>
+          <Button type="submit" size="sm" isLoading={isSubmitting}>
             Create Application
           </Button>
         </div>

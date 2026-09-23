@@ -54,13 +54,13 @@ export const NotesSection: React.FC<NotesSectionProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
+    <div className="bg-[#121214] border border-[#27272A] rounded-lg p-5 space-y-4 text-[#FAFAFA]">
       <div className="flex items-center gap-2">
-        <div className="p-1.5 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
+        <div className="p-1.5 rounded-md bg-[#18181B] text-indigo-400 border border-[#27272A]">
           <MessageSquare className="w-4 h-4" />
         </div>
-        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Notes & Updates</h2>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+        <h2 className="text-sm font-semibold text-[#FAFAFA]">Notes & Updates</h2>
+        <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#18181B] border border-[#27272A] text-[#71717A]">
           {notes.length}
         </span>
       </div>
@@ -69,31 +69,30 @@ export const NotesSection: React.FC<NotesSectionProps> = ({
       <form onSubmit={handleAddNote} className="space-y-2">
         <textarea
           rows={2}
-          placeholder="Add a note (e.g. follow-up email sent, recruiter details, technical questions asked)..."
+          placeholder="Log updates, recruiter outreach, interview questions asked..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+          className="w-full px-3 py-2 text-xs rounded-md bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500 font-sans"
         />
         <div className="flex justify-end">
           <Button type="submit" size="sm" isLoading={isSubmitting} disabled={!content.trim()}>
-            <Send className="w-3.5 h-3.5 mr-1" />
+            <Send className="w-3 h-3 mr-1" />
             Add Note
           </Button>
         </div>
       </form>
 
       {/* Notes list */}
-      <div className="space-y-3 pt-2">
+      <div className="space-y-2.5 pt-1">
         {notes.length === 0 ? (
-          <div className="py-6 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-400">
-            No notes added yet.
+          <div className="py-6 text-center border border-dashed border-[#27272A] rounded-lg text-xs font-mono text-[#52525B]">
+            No notes logged.
           </div>
         ) : (
           notes.map((note) => {
             const formattedTime = new Date(note.created_at).toLocaleString('en-US', {
               month: 'short',
               day: 'numeric',
-              year: 'numeric',
               hour: 'numeric',
               minute: '2-digit',
             });
@@ -101,21 +100,21 @@ export const NotesSection: React.FC<NotesSectionProps> = ({
             return (
               <div
                 key={note.id}
-                className="p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-start justify-between gap-3"
+                className="p-3 rounded-md border border-[#27272A] bg-[#0E0E10] flex items-start justify-between gap-3"
               >
                 <div className="space-y-1 flex-1">
-                  <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">
+                  <p className="text-xs text-[#FAFAFA] whitespace-pre-wrap leading-relaxed">
                     {note.content}
                   </p>
-                  <div className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
-                    <Clock className="w-3 h-3" />
+                  <div className="flex items-center gap-1 text-[10px] font-mono text-[#71717A]">
+                    <Clock className="w-3 h-3 text-[#52525B]" />
                     <span>{formattedTime}</span>
                   </div>
                 </div>
 
                 <button
                   onClick={() => handleDeleteNote(note.id)}
-                  className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 rounded"
+                  className="text-[#52525B] hover:text-rose-400 p-1 rounded transition-colors"
                   title="Delete note"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

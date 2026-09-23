@@ -3,40 +3,40 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --border: #e2e8f0;
-  --primary: #0284c7;
-  --primary-foreground: #ffffff;
-}
-
-.dark {
-  --background: #090d16;
-  --foreground: #f8fafc;
-  --card: #111827;
-  --card-foreground: #f8fafc;
-  --border: #1f2937;
-  --primary: #38bdf8;
-  --primary-foreground: #0f172a;
+  --background: #0A0A0B;
+  --foreground: #FAFAFA;
+  --surface: #121214;
+  --surface-hover: #18181B;
+  --border: #27272A;
+  --border-hover: #3F3F46;
+  --text-muted: #A1A1AA;
+  --accent: #6366F1;
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #0A0A0B;
+  color: #FAFAFA;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
   box-sizing: border-box;
+  border-color: #27272A;
 }
 
-/* Clean Custom Scrollbars */
+/* Minimal Monospace Utilities */
+.font-mono {
+  font-family: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Clean Linear/Supabase Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -44,10 +44,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #94a3b8;
-  border-radius: 3px;
+  background: #27272A;
+  border-radius: 4px;
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: #374151;
+::-webkit-scrollbar-thumb:hover {
+  background: #3F3F46;
 }

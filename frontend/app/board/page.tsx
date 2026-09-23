@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { apiFetch } from '../../lib/api-client';
-import { Application, WorkMode } from '../../lib/types';
+import { Application } from '../../lib/types';
 import { KanbanBoard } from './components/KanbanBoard';
 import { ApplicationsTable } from './components/ApplicationsTable';
 import { NewApplicationModal } from './components/NewApplicationModal';
@@ -20,8 +20,8 @@ import {
   Bookmark,
   Star,
   AlertTriangle,
-  SlidersHorizontal,
   X,
+  Layers,
 } from 'lucide-react';
 import { exportApplicationsToCsv } from '../../lib/export-csv';
 import { useToast } from '../../components/ui/Toast';
@@ -92,7 +92,7 @@ export default function BoardPage() {
           job_description: clipDesc || undefined,
         });
         setIsNewModalOpen(true);
-        showToast('Job clipped from browser! Review and save below.', 'success');
+        showToast('Job clipped from browser. Review and save below.', 'success');
       }
     }
   }, []);
@@ -108,14 +108,13 @@ export default function BoardPage() {
       return;
     }
     exportApplicationsToCsv(filteredApplications);
-    showToast(`Exported ${filteredApplications.length} application(s) to CSV!`, 'success');
+    showToast(`Exported ${filteredApplications.length} application(s) to CSV`, 'success');
   };
 
   // Filtered applications based on search and filters
   const filteredApplications = useMemo(() => {
     let list = [...applications];
 
-    // Search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(
@@ -126,17 +125,14 @@ export default function BoardPage() {
       );
     }
 
-    // Work Mode
     if (workModeFilter !== 'ALL') {
       list = list.filter((app) => (app.work_mode || 'REMOTE') === workModeFilter);
     }
 
-    // Starred only
     if (starredOnly) {
       list = list.filter((app) => app.is_favorite || isApplicationStarred(app.id));
     }
 
-    // Stale only (>14 days in APPLIED with no interviews)
     if (staleOnly) {
       const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
       list = list.filter(
@@ -147,7 +143,6 @@ export default function BoardPage() {
       );
     }
 
-    // Sort
     list.sort((a, b) => {
       if (sortBy === 'applied_desc') {
         return new Date(b.applied_date).getTime() - new Date(a.applied_date).getTime();
@@ -169,7 +164,6 @@ export default function BoardPage() {
     return list;
   }, [applications, searchQuery, workModeFilter, starredOnly, staleOnly, sortBy]);
 
-  // Metrics summary
   const metrics = useMemo(() => {
     const total = applications.length;
     const interviews = applications.filter((a) => a.status === 'INTERVIEW').length;
@@ -179,44 +173,49 @@ export default function BoardPage() {
   }, [applications]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 text-[#FAFAFA]">
       {/* Header with Title, View Modes & Action Buttons */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Application Board
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Track and accelerate your hiring pipeline with AI tools, velocity metrics, and calendar integrations
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-[#FAFAFA] tracking-tight">
+              Applications
+            </h1>
+            <span className="text-xs font-mono text-[#71717A] bg-[#18181B] border border-[#27272A] px-2 py-0.5 rounded">
+              {applications.length} total
+            </span>
+          </div>
+          <p className="text-xs text-[#A1A1AA] mt-0.5">
+            Manage stages, AI interview prep, ATS keyword scores, and offer packages.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* View Mode Toggle */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center bg-[#121214] p-0.5 rounded-md border border-[#27272A]">
             <button
               onClick={() => setViewMode('kanban')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono transition-colors ${
                 viewMode === 'kanban'
-                  ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[#27272A] text-[#FAFAFA]'
+                  : 'text-[#71717A] hover:text-[#FAFAFA]'
               }`}
-              title="Kanban Board View"
+              title="Kanban Board"
             >
               <LayoutGrid className="w-3.5 h-3.5" />
-              <span>Kanban</span>
+              <span>board</span>
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono transition-colors ${
                 viewMode === 'table'
-                  ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[#27272A] text-[#FAFAFA]'
+                  : 'text-[#71717A] hover:text-[#FAFAFA]'
               }`}
-              title="Table / Spreadsheet List View"
+              title="Table View"
             >
               <List className="w-3.5 h-3.5" />
-              <span>Table</span>
+              <span>table</span>
             </button>
           </div>
 
@@ -225,10 +224,9 @@ export default function BoardPage() {
             size="sm"
             onClick={() => setIsClipperModalOpen(true)}
             title="1-Click Browser Job Clipper Bookmarklet"
-            className="text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
           >
-            <Bookmark className="w-3.5 h-3.5 mr-1.5 text-indigo-500" />
-            <span>Job Clipper</span>
+            <Bookmark className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
+            <span>Clipper</span>
           </Button>
 
           <Button
@@ -237,8 +235,8 @@ export default function BoardPage() {
             onClick={handleExportCsv}
             title="Export applications to CSV"
           >
-            <Download className="w-3.5 h-3.5 mr-1.5" />
-            <span>Export CSV</span>
+            <Download className="w-3.5 h-3.5 mr-1.5 text-[#A1A1AA]" />
+            <span>Export</span>
           </Button>
 
           <Button
@@ -246,20 +244,19 @@ export default function BoardPage() {
             size="sm"
             onClick={fetchApplications}
             isLoading={loading}
-            title="Refresh board"
+            title="Refresh pipeline"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
           </Button>
 
           <Button
-            size="md"
+            size="sm"
             onClick={() => {
               setClipPrefill(undefined);
               setIsNewModalOpen(true);
             }}
-            className="shadow-sm"
           >
-            <Plus className="w-4 h-4 mr-1.5" />
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
             Add Application
           </Button>
         </div>
@@ -270,64 +267,44 @@ export default function BoardPage() {
 
       {/* Metrics Summary Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3 flex items-center gap-3">
-          <div className="p-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-            <Briefcase className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Total Applications</p>
-            <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{metrics.total}</p>
-          </div>
+        <div className="bg-[#121214] border border-[#27272A] rounded-lg p-3">
+          <p className="text-xs text-[#71717A] font-mono">Total Pipeline</p>
+          <p className="text-lg font-mono font-semibold text-[#FAFAFA] mt-1">{metrics.total}</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3 flex items-center gap-3">
-          <div className="p-2 rounded-md bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400">
-            <Briefcase className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Active Pipeline</p>
-            <p className="text-lg font-bold text-sky-600 dark:text-sky-400">{metrics.active}</p>
-          </div>
+        <div className="bg-[#121214] border border-[#27272A] rounded-lg p-3">
+          <p className="text-xs text-[#71717A] font-mono">Active (Applied/Interview)</p>
+          <p className="text-lg font-mono font-semibold text-indigo-400 mt-1">{metrics.active}</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3 flex items-center gap-3">
-          <div className="p-2 rounded-md bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
-            <Video className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">In Interview</p>
-            <p className="text-lg font-bold text-amber-600 dark:text-amber-400">{metrics.interviews}</p>
-          </div>
+        <div className="bg-[#121214] border border-[#27272A] rounded-lg p-3">
+          <p className="text-xs text-[#71717A] font-mono">In Interview</p>
+          <p className="text-lg font-mono font-semibold text-amber-400 mt-1">{metrics.interviews}</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3 flex items-center gap-3">
-          <div className="p-2 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
-            <Award className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Offers Received</p>
-            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{metrics.offers}</p>
-          </div>
+        <div className="bg-[#121214] border border-[#27272A] rounded-lg p-3">
+          <p className="text-xs text-[#71717A] font-mono">Offers Received</p>
+          <p className="text-lg font-mono font-semibold text-emerald-400 mt-1">{metrics.offers}</p>
         </div>
       </div>
 
-      {/* Advanced Filter & Search Toolbar */}
-      <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3 shadow-sm">
+      {/* Filter & Search Toolbar */}
+      <div className="p-3 bg-[#121214] border border-[#27272A] rounded-lg space-y-3">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Search Input */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#52525B]" />
             <input
               type="text"
-              placeholder="Search by company, role or description..."
+              placeholder="Search company, role, or keywords..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full pl-8 pr-8 py-1.5 text-xs bg-[#0A0A0B] border border-[#27272A] rounded-md text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#71717A] hover:text-[#FAFAFA]"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -335,20 +312,20 @@ export default function BoardPage() {
           </div>
 
           {/* Filter Pills & Toggles */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
             {/* Work Mode Switcher */}
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-xs">
+            <div className="flex items-center gap-0.5 bg-[#0A0A0B] border border-[#27272A] p-0.5 rounded-md">
               {['ALL', 'REMOTE', 'HYBRID', 'ONSITE'].map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setWorkModeFilter(mode)}
-                  className={`px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all ${
+                  className={`px-2 py-0.5 rounded text-[11px] transition-colors ${
                     workModeFilter === mode
-                      ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-[#27272A] text-[#FAFAFA]'
+                      : 'text-[#71717A] hover:text-[#FAFAFA]'
                   }`}
                 >
-                  {mode === 'ALL' ? 'All Modes' : mode}
+                  {mode.toLowerCase()}
                 </button>
               ))}
             </div>
@@ -356,49 +333,49 @@ export default function BoardPage() {
             {/* Starred Toggle */}
             <button
               onClick={() => setStarredOnly((prev) => !prev)}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs border transition-colors ${
                 starredOnly
-                  ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300'
-                  : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-amber-950/60 border-amber-800 text-amber-300'
+                  : 'bg-[#0A0A0B] border-[#27272A] text-[#A1A1AA] hover:text-[#FAFAFA]'
               }`}
             >
-              <Star className={`w-3.5 h-3.5 ${starredOnly ? 'fill-amber-400 text-amber-400' : ''}`} />
-              <span>Starred</span>
+              <Star className={`w-3.5 h-3.5 ${starredOnly ? 'fill-amber-400 text-amber-400' : 'text-[#71717A]'}`} />
+              <span>starred</span>
             </button>
 
             {/* Stale Alert Toggle */}
             <button
               onClick={() => setStaleOnly((prev) => !prev)}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs border transition-colors ${
                 staleOnly
-                  ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-300'
-                  : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-rose-950/60 border-rose-800 text-rose-300'
+                  : 'bg-[#0A0A0B] border-[#27272A] text-[#A1A1AA] hover:text-[#FAFAFA]'
               }`}
-              title="Filter applications waiting >14 days in Applied stage"
+              title="Applications with no updates for >14 days"
             >
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
-              <span>Needs Attention</span>
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+              <span>stale (&gt;14d)</span>
             </button>
 
             {/* Sort Dropdown */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 font-medium"
+              className="text-xs px-2 py-1 rounded-md bg-[#0A0A0B] border border-[#27272A] text-[#FAFAFA] focus:outline-none focus:border-indigo-500 font-mono cursor-pointer"
             >
-              <option value="applied_desc">Latest Applied</option>
-              <option value="applied_asc">Oldest Applied</option>
-              <option value="company_asc">Company (A-Z)</option>
-              <option value="salary_desc">Highest Salary</option>
+              <option value="applied_desc">latest applied</option>
+              <option value="applied_asc">oldest applied</option>
+              <option value="company_asc">company (a-z)</option>
+              <option value="salary_desc">highest salary</option>
             </select>
           </div>
         </div>
 
         {/* Filter Summary indicator */}
         {(workModeFilter !== 'ALL' || starredOnly || staleOnly || searchQuery) && (
-          <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+          <div className="flex items-center justify-between pt-2 border-t border-[#27272A] text-xs font-mono text-[#71717A]">
             <span>
-              Showing <strong>{filteredApplications.length}</strong> of {applications.length} applications
+              Showing {filteredApplications.length} of {applications.length} applications
             </span>
             <button
               onClick={() => {
@@ -408,9 +385,9 @@ export default function BoardPage() {
                 setStaleOnly(false);
                 setSortBy('applied_desc');
               }}
-              className="text-sky-600 dark:text-sky-400 hover:underline text-[11px]"
+              className="text-indigo-400 hover:text-indigo-300 underline"
             >
-              Reset all filters
+              reset filters
             </button>
           </div>
         )}
@@ -419,9 +396,9 @@ export default function BoardPage() {
       {/* Content: Kanban Board or Table View */}
       {loading && applications.length === 0 ? (
         <div className="flex items-center justify-center py-20">
-          <div className="flex flex-col items-center gap-2 text-slate-400">
-            <div className="w-7 h-7 border-3 border-sky-600 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm">Loading applications...</p>
+          <div className="flex flex-col items-center gap-2 text-[#71717A]">
+            <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs font-mono">Loading applications...</p>
           </div>
         </div>
       ) : viewMode === 'kanban' ? (

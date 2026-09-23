@@ -6,7 +6,6 @@ import { apiFetch } from '../../lib/api-client';
 import { InterviewWithApplication, InterviewRoundType } from '../../lib/types';
 import { downloadIcsFile } from '../../lib/calendar';
 import { useToast } from '../../components/ui/Toast';
-import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { AiInterviewPrepModal } from '../../components/AiInterviewPrepModal';
 import {
@@ -17,15 +16,10 @@ import {
   Building2,
   Briefcase,
   Search,
-  Filter,
-  CheckCircle2,
-  AlertCircle,
   ExternalLink,
   ChevronRight,
   Plus,
   RefreshCw,
-  Edit2,
-  Trash2,
 } from 'lucide-react';
 
 export default function InterviewsPage() {
@@ -80,35 +74,35 @@ export default function InterviewsPage() {
     if (diffMs < 0) {
       const pastDays = Math.abs(diffDays);
       return {
-        text: pastDays === 0 ? 'Earlier today' : `${pastDays} day${pastDays > 1 ? 's' : ''} ago`,
-        color: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700',
+        text: pastDays === 0 ? 'Earlier today' : `${pastDays}d ago`,
+        color: 'bg-[#18181B] text-zinc-400 border-[#27272A]',
       };
     }
 
     if (isToday) {
       return {
         text: `Today at ${target.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-        color: 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 animate-pulse font-bold',
+        color: 'bg-rose-500/10 text-rose-400 border-rose-500/30 font-medium',
       };
     }
 
     if (diffDays === 1) {
       return {
         text: `Tomorrow at ${target.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-        color: 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800 font-semibold',
+        color: 'bg-amber-500/10 text-amber-400 border-amber-500/30 font-medium',
       };
     }
 
     if (diffDays <= 7) {
       return {
         text: `In ${diffDays} days`,
-        color: 'bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-800 font-medium',
+        color: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30 font-medium',
       };
     }
 
     return {
       text: `In ${diffDays} days`,
-      color: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+      color: 'bg-[#18181B] text-zinc-300 border-[#27272A]',
     };
   };
 
@@ -166,32 +160,32 @@ export default function InterviewsPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-sky-950 to-indigo-950 border border-slate-800 text-white shadow-lg">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30">
-              <CalendarIcon className="w-5 h-5" />
+      {/* Header Banner - Linear Developer Aesthetics */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-lg bg-[#121214] border border-[#27272A] text-zinc-100">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-md bg-[#18181B] text-zinc-300 border border-[#27272A]">
+              <CalendarIcon className="w-4 h-4 text-indigo-400" />
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+            <h1 className="text-base sm:text-lg font-semibold tracking-tight text-[#FAFAFA]">
               Interviews & Schedule Hub
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">
+          <p className="text-xs text-zinc-400 max-w-2xl">
             Keep track of all upcoming technical, behavioral, and screening rounds across your pipeline with live countdowns, calendar invites, and instant AI Mock prep.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex flex-col items-end px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-right">
-            <span className="text-[11px] text-slate-300 uppercase tracking-wider font-semibold">
-              Upcoming Rounds
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#0A0A0B] border border-[#27272A] text-xs">
+            <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-mono">
+              Upcoming
             </span>
-            <span className="text-xl font-bold text-sky-300">{upcomingCount}</span>
+            <span className="font-mono font-semibold text-zinc-100">{upcomingCount}</span>
           </div>
 
           <Link href="/board">
-            <Button variant="secondary" size="sm" className="bg-white/10 text-white hover:bg-white/20 border-white/20 text-xs">
+            <Button variant="secondary" size="sm" className="text-xs font-mono">
               <Plus className="w-3.5 h-3.5 mr-1" />
               <span>Applications</span>
             </Button>
@@ -200,35 +194,35 @@ export default function InterviewsPage() {
       </div>
 
       {/* Control Bar: Tabs, Search & Filters */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#121214] p-3 rounded-lg border border-[#27272A]">
         {/* Tab Switcher */}
-        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+        <div className="flex items-center gap-1 p-0.5 bg-[#0A0A0B] rounded-md border border-[#27272A]">
           <button
             onClick={() => setActiveTab('UPCOMING')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded text-xs font-mono transition-colors ${
               activeTab === 'UPCOMING'
-                ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-[#18181B] text-zinc-100 border border-[#27272A] shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
             Upcoming ({upcomingCount})
           </button>
           <button
             onClick={() => setActiveTab('PAST')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded text-xs font-mono transition-colors ${
               activeTab === 'PAST'
-                ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-[#18181B] text-zinc-100 border border-[#27272A] shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            Past Rounds ({interviews.length - upcomingCount})
+            Past ({interviews.length - upcomingCount})
           </button>
           <button
             onClick={() => setActiveTab('ALL')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded text-xs font-mono transition-colors ${
               activeTab === 'ALL'
-                ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-[#18181B] text-zinc-100 border border-[#27272A] shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
             All ({interviews.length})
@@ -238,20 +232,20 @@ export default function InterviewsPage() {
         {/* Search & Round Filter */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative flex-1 sm:w-64">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search company, role or notes..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md bg-[#0A0A0B] border border-[#27272A] text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-500 font-mono transition-colors"
             />
           </div>
 
           <select
             value={roundFilter}
             onChange={(e) => setRoundFilter(e.target.value)}
-            className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            className="text-xs px-2.5 py-1.5 rounded-md bg-[#0A0A0B] border border-[#27272A] text-zinc-200 focus:outline-none focus:border-indigo-500 font-mono transition-colors"
           >
             <option value="ALL">All Round Formats</option>
             <option value="TECHNICAL">Technical / Coding</option>
@@ -263,7 +257,7 @@ export default function InterviewsPage() {
           <button
             onClick={fetchInterviews}
             disabled={loading}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors"
+            className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-[#18181B] border border-[#27272A] transition-colors"
             title="Refresh Schedule"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -273,12 +267,12 @@ export default function InterviewsPage() {
 
       {/* Interviews Grid */}
       {loading ? (
-        <div className="py-20 flex flex-col items-center justify-center gap-2 text-slate-400">
-          <div className="w-7 h-7 border-3 border-sky-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-medium">Loading scheduled interviews...</p>
+        <div className="py-20 flex flex-col items-center justify-center gap-2 text-zinc-400">
+          <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-mono text-zinc-400">Loading scheduled interviews...</p>
         </div>
       ) : filteredInterviews.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           {filteredInterviews.map((item) => {
             const countdown = getCountdownLabel(item.scheduled_at);
             const dateObj = new Date(item.scheduled_at);
@@ -286,16 +280,16 @@ export default function InterviewsPage() {
             return (
               <div
                 key={item.id}
-                className="flex flex-col justify-between p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-sky-500/50 dark:hover:border-sky-500/50 transition-all group"
+                className="flex flex-col justify-between p-4 rounded-lg bg-[#121214] border border-[#27272A] hover:border-[#3F3F46] transition-colors group"
               >
                 <div className="space-y-3">
                   {/* Top Bar: Countdown & Round Badge */}
                   <div className="flex items-center justify-between gap-2">
-                    <span className={`text-[11px] px-2.5 py-0.5 rounded-full border ${countdown.color}`}>
+                    <span className={`text-[11px] font-mono px-2 py-0.5 rounded border ${countdown.color}`}>
                       {countdown.text}
                     </span>
 
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#18181B] text-zinc-300 border border-[#27272A]">
                       {item.round_type}
                     </span>
                   </div>
@@ -304,23 +298,23 @@ export default function InterviewsPage() {
                   <div>
                     <Link
                       href={`/applications/${item.application_id}`}
-                      className="group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors inline-flex items-center gap-1.5"
+                      className="group-hover:text-indigo-400 transition-colors inline-flex items-center gap-1.5"
                     >
-                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                      <h2 className="text-sm font-semibold text-[#FAFAFA]">
                         {item.applications?.company_name}
                       </h2>
-                      <ExternalLink className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ExternalLink className="w-3.5 h-3.5 text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </Link>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    <p className="text-xs text-zinc-400 font-medium">
                       {item.applications?.role_title}
                     </p>
                   </div>
 
                   {/* Date, Time & Mode Meta */}
-                  <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800/80 space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-sky-500" />
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  <div className="p-2.5 rounded-md bg-[#0A0A0B] border border-[#27272A] space-y-1.5 text-xs text-zinc-300">
+                    <div className="flex items-center gap-2 font-mono">
+                      <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                      <span className="text-zinc-200">
                         {dateObj.toLocaleDateString(undefined, {
                           weekday: 'short',
                           month: 'short',
@@ -328,15 +322,15 @@ export default function InterviewsPage() {
                           year: 'numeric',
                         })}
                       </span>
-                      <span>•</span>
+                      <span className="text-zinc-600">•</span>
                       <span>
                         {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
 
                     {(item.applications?.location || item.applications?.work_mode) && (
-                      <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
-                        <Building2 className="w-3 h-3 text-slate-400" />
+                      <div className="flex items-center gap-2 text-[11px] text-zinc-400 font-mono">
+                        <Building2 className="w-3 h-3 text-zinc-400" />
                         <span>
                           {item.applications.work_mode || 'REMOTE'}
                           {item.applications.location ? ` (${item.applications.location})` : ''}
@@ -347,9 +341,9 @@ export default function InterviewsPage() {
 
                   {/* Notes Snippet */}
                   {item.notes && (
-                    <div className="text-xs text-slate-500 dark:text-slate-400 bg-amber-50/60 dark:bg-amber-950/20 p-2.5 rounded-lg border border-amber-200/50 dark:border-amber-900/30">
+                    <div className="text-xs text-zinc-300 bg-[#0A0A0B] p-2.5 rounded-md border border-[#27272A]">
                       <p className="line-clamp-2">
-                        <strong className="text-amber-700 dark:text-amber-400">Notes:</strong>{' '}
+                        <span className="text-zinc-400 font-mono">Notes:</span>{' '}
                         {item.notes}
                       </p>
                     </div>
@@ -357,9 +351,9 @@ export default function InterviewsPage() {
 
                   {/* Outcome Tag if completed */}
                   {item.outcome && (
-                    <div className="flex items-center gap-1.5 text-xs">
-                      <span className="text-slate-400 text-[11px]">Outcome:</span>
-                      <span className="font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 text-[11px]">
+                    <div className="flex items-center gap-1.5 text-xs font-mono">
+                      <span className="text-zinc-400 text-[11px]">Outcome:</span>
+                      <span className="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[11px]">
                         {item.outcome}
                       </span>
                     </div>
@@ -367,10 +361,10 @@ export default function InterviewsPage() {
                 </div>
 
                 {/* Bottom Action Footer */}
-                <div className="pt-4 mt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                <div className="pt-3 mt-3 border-t border-[#27272A] flex items-center justify-between gap-2">
                   <Link
                     href={`/applications/${item.application_id}`}
-                    className="text-xs text-slate-600 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 flex items-center gap-1"
+                    className="text-xs text-zinc-400 hover:text-zinc-100 flex items-center gap-1 font-mono transition-colors"
                   >
                     <span>View Application</span>
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -381,7 +375,7 @@ export default function InterviewsPage() {
                     <button
                       type="button"
                       onClick={() => handleExportIcs(item)}
-                      className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors"
+                      className="p-1.5 rounded-md text-zinc-300 hover:bg-[#18181B] border border-[#27272A] transition-colors"
                       title="Add to Google / Apple Calendar (.ics)"
                     >
                       <Download className="w-3.5 h-3.5" />
@@ -392,9 +386,9 @@ export default function InterviewsPage() {
                       variant="primary"
                       size="sm"
                       onClick={() => handleLaunchAiPrep(item)}
-                      className="flex items-center gap-1 text-xs py-1.5 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white shadow-sm"
+                      className="flex items-center gap-1.5 text-xs"
                     >
-                      <Sparkles className="w-3 h-3" />
+                      <Sparkles className="w-3 h-3 text-indigo-300" />
                       <span>AI Mock Prep</span>
                     </Button>
                   </div>
@@ -405,19 +399,19 @@ export default function InterviewsPage() {
         </div>
       ) : (
         /* Empty State */
-        <div className="p-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center space-y-4 shadow-sm">
-          <div className="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 mx-auto flex items-center justify-center border border-sky-200 dark:border-sky-800">
-            <CalendarIcon className="w-6 h-6" />
+        <div className="p-12 rounded-lg bg-[#121214] border border-[#27272A] text-center space-y-4">
+          <div className="w-10 h-10 rounded-md bg-[#18181B] text-zinc-300 mx-auto flex items-center justify-center border border-[#27272A]">
+            <CalendarIcon className="w-5 h-5" />
           </div>
           <div className="space-y-1">
-            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+            <h2 className="text-sm font-semibold text-[#FAFAFA]">
               {searchQuery || roundFilter !== 'ALL'
                 ? 'No matching interviews found'
                 : activeTab === 'UPCOMING'
                 ? 'No upcoming interviews scheduled'
                 : 'No past interviews recorded'}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+            <p className="text-xs text-zinc-400 max-w-md mx-auto">
               {searchQuery || roundFilter !== 'ALL'
                 ? 'Try adjusting your filters or search keywords.'
                 : 'Schedule interview rounds on any active application to track dates, receive reminders, and generate AI mock questions.'}
@@ -425,7 +419,7 @@ export default function InterviewsPage() {
           </div>
 
           <Link href="/board">
-            <Button variant="primary" size="sm" className="text-xs">
+            <Button variant="secondary" size="sm" className="text-xs font-mono">
               <Briefcase className="w-3.5 h-3.5 mr-1" />
               <span>Browse Applications Board</span>
             </Button>

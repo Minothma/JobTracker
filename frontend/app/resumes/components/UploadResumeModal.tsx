@@ -113,14 +113,14 @@ export const UploadResumeModal: React.FC<UploadResumeModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Upload New Resume Version">
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-rose-50 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 text-sm">
+        <div className="mb-4 p-3 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono">
           {error}
         </div>
       )}
 
       <form onSubmit={handleUpload} className="space-y-4">
         {/* File Drop / Select Area */}
-        <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-6 text-center hover:border-sky-500 transition-colors">
+        <div className="border border-dashed border-[#27272A] bg-[#0A0A0B] rounded-lg p-6 text-center hover:border-indigo-500 transition-colors">
           <input
             type="file"
             id="resume-file-input"
@@ -135,25 +135,25 @@ export const UploadResumeModal: React.FC<UploadResumeModalProps> = ({
           >
             {selectedFile ? (
               <>
-                <div className="p-3 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-                  <CheckCircle2 className="w-8 h-8" />
+                <div className="p-2.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                <p className="font-medium text-zinc-100 text-xs font-mono">
                   {selectedFile.name}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-[11px] text-zinc-400 font-mono">
                   {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Click to change
                 </p>
               </>
             ) : (
               <>
-                <div className="p-3 rounded-full bg-sky-50 text-sky-600 dark:bg-sky-950/50 dark:text-sky-400">
-                  <UploadCloud className="w-8 h-8" />
+                <div className="p-2.5 rounded-md bg-[#18181B] text-zinc-300 border border-[#27272A]">
+                  <UploadCloud className="w-6 h-6 text-zinc-400" />
                 </div>
-                <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                <p className="font-medium text-zinc-200 text-xs">
                   Click to select a PDF resume
                 </p>
-                <p className="text-xs text-slate-500">PDF up to 10MB</p>
+                <p className="text-[11px] text-zinc-400 font-mono">PDF up to 10MB</p>
               </>
             )}
           </label>
@@ -168,17 +168,17 @@ export const UploadResumeModal: React.FC<UploadResumeModalProps> = ({
         />
 
         {uploadProgress && (
-          <div className="p-3 rounded-lg bg-sky-50 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 text-xs flex items-center gap-2 animate-pulse">
-            <FileText className="w-4 h-4" />
+          <div className="p-2.5 rounded-md bg-[#0A0A0B] border border-[#27272A] text-zinc-300 text-xs font-mono flex items-center gap-2">
+            <FileText className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
             <span>{uploadProgress}</span>
           </div>
         )}
 
-        <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-          <Button type="button" variant="outline" onClick={handleClose}>
+        <div className="flex justify-end gap-2.5 pt-3 border-t border-[#27272A]">
+          <Button type="button" variant="secondary" size="sm" onClick={handleClose} className="text-xs font-mono">
             Cancel
           </Button>
-          <Button type="submit" isLoading={isUploading} disabled={!selectedFile}>
+          <Button type="submit" size="sm" isLoading={isUploading} disabled={!selectedFile} className="text-xs font-mono">
             Upload Resume
           </Button>
         </div>

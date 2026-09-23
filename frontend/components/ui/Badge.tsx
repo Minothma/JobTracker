@@ -12,38 +12,38 @@ export const Badge: React.FC<BadgeProps> = ({ status, children, variant, classNa
   const getStatusStyles = (s?: string) => {
     switch (s) {
       case 'APPLIED':
-        return 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/70 dark:text-sky-300 dark:border-sky-800';
+        return 'bg-zinc-800/60 text-zinc-300 border-zinc-700/60';
       case 'INTERVIEW':
-        return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/70 dark:text-amber-300 dark:border-amber-800';
+        return 'bg-amber-950/40 text-amber-300 border-amber-800/40';
       case 'OFFER':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/70 dark:text-emerald-300 dark:border-emerald-800';
+        return 'bg-emerald-950/40 text-emerald-300 border-emerald-800/40';
       case 'REJECTED':
-        return 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950/70 dark:text-rose-300 dark:border-rose-800';
+        return 'bg-rose-950/40 text-rose-300 border-rose-800/40';
       case 'WITHDRAWN':
-        return 'bg-slate-200 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+        return 'bg-zinc-800/40 text-zinc-400 border-zinc-700/40';
       case 'PASSED':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/70 dark:text-emerald-300 dark:border-emerald-800';
+        return 'bg-emerald-950/40 text-emerald-300 border-emerald-800/40';
       case 'FAILED':
-        return 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950/70 dark:text-rose-300 dark:border-rose-800';
+        return 'bg-rose-950/40 text-rose-300 border-rose-800/40';
       case 'PENDING':
-        return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/70 dark:text-amber-300 dark:border-amber-800';
+        return 'bg-amber-950/40 text-amber-300 border-amber-800/40';
       default:
-        return 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+        return 'bg-zinc-800/50 text-zinc-300 border-zinc-700/50';
     }
   };
 
   const getVariantStyles = (v?: string) => {
     switch (v) {
       case 'success':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/70 dark:text-emerald-300 dark:border-emerald-800';
+        return 'bg-emerald-950/40 text-emerald-300 border-emerald-800/40';
       case 'warning':
-        return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/70 dark:text-amber-300 dark:border-amber-800';
+        return 'bg-amber-950/40 text-amber-300 border-amber-800/40';
       case 'danger':
-        return 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950/70 dark:text-rose-300 dark:border-rose-800';
+        return 'bg-rose-950/40 text-rose-300 border-rose-800/40';
       case 'info':
-        return 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/70 dark:text-sky-300 dark:border-sky-800';
+        return 'bg-indigo-950/40 text-indigo-300 border-indigo-800/40';
       default:
-        return 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+        return 'bg-zinc-800/50 text-zinc-300 border-zinc-700/50';
     }
   };
 
@@ -51,7 +51,7 @@ export const Badge: React.FC<BadgeProps> = ({ status, children, variant, classNa
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border ${styleClass} ${className}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${styleClass} ${className}`}
     >
       {children || status}
     </span>

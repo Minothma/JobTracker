@@ -73,7 +73,6 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
     setSelectedResumeId(newResume.id);
     setIsUploadModalOpen(false);
 
-    // Auto-attach newly uploaded resume to this application
     try {
       const updated = await apiFetch<Application>(`/applications/${application.id}`, {
         method: 'PATCH',
@@ -82,7 +81,7 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
         }),
       });
       onUpdate(updated);
-      showToast(`Attached "${newResume.version_label}" to this application!`, 'success');
+      showToast(`Attached "${newResume.version_label}" to application`, 'success');
       setIsModalOpen(false);
     } catch {
       showToast('Resume uploaded. Click Save Attachment to link it.', 'info');
@@ -98,16 +97,16 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
   ];
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm space-y-4">
+    <div className="bg-[#121214] border border-[#27272A] rounded-lg p-5 space-y-4 text-[#FAFAFA]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+          <div className="p-1.5 rounded-md bg-[#18181B] text-indigo-400 border border-[#27272A]">
             <FileText className="w-4 h-4" />
           </div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Attached Resume</h2>
+          <h2 className="text-sm font-semibold text-[#FAFAFA]">Attached Resume</h2>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 font-mono text-xs">
           <Button variant="outline" size="sm" onClick={() => setIsModalOpen(true)}>
             <Link2 className="w-3.5 h-3.5 mr-1" />
             {application.resumes ? 'Change' : 'Attach'}
@@ -123,16 +122,16 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
 
       {application.resumes ? (
         <div className="space-y-3">
-          <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
-                <FileText className="w-5 h-5" />
+          <div className="p-3 rounded-md border border-[#27272A] bg-[#0E0E10] flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded bg-[#18181B] text-indigo-400">
+                <FileText className="w-4 h-4" />
               </div>
               <div>
-                <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                <p className="font-medium text-xs text-[#FAFAFA]">
                   {application.resumes.version_label}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-[11px] font-mono text-[#71717A]">
                   {application.resumes.original_filename}
                 </p>
               </div>
@@ -144,10 +143,10 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
                   href={application.resumes.download_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-colors"
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-mono rounded bg-[#18181B] hover:bg-[#27272A] text-[#A1A1AA] hover:text-[#FAFAFA] border border-[#27272A] transition-colors"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>View</span>
+                  <Download className="w-3 h-3" />
+                  <span>view</span>
                 </a>
               )}
             </div>
@@ -157,33 +156,30 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
           <button
             type="button"
             onClick={() => setIsAiModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-violet-500/10 hover:from-sky-500/20 hover:via-indigo-500/20 hover:to-violet-500/20 text-indigo-700 dark:text-indigo-300 font-semibold text-xs transition-all shadow-2xs group"
+            className="w-full flex items-center justify-center gap-2 p-2.5 rounded-md border border-[#27272A] bg-[#0E0E10] hover:bg-[#18181B] text-indigo-400 font-mono text-xs transition-colors"
           >
-            <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 group-hover:rotate-12 transition-transform" />
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
             <span>Check AI ATS Match & Keyword Gaps</span>
           </button>
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="py-6 px-4 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-500 dark:text-slate-400 flex flex-col items-center justify-center gap-2">
-            <UploadCloud className="w-8 h-8 text-slate-400 mb-1" />
-            <p className="font-medium text-slate-700 dark:text-slate-300">
-              No resume version attached to this application.
+          <div className="py-5 px-4 text-center border border-dashed border-[#27272A] rounded-lg text-xs font-mono text-[#52525B] flex flex-col items-center justify-center gap-1.5">
+            <UploadCloud className="w-6 h-6 text-[#52525B] mb-0.5" />
+            <p className="font-medium text-[#A1A1AA]">
+              No resume attached.
             </p>
-            <p className="text-xs text-slate-500">
-              Upload your PDF resume to run AI ATS scoring and match keywords.
-            </p>
-            <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center gap-2 mt-1">
               <Button size="sm" onClick={() => setIsUploadModalOpen(true)}>
-                <UploadCloud className="w-3.5 h-3.5 mr-1" />
-                Upload PDF Resume
+                <UploadCloud className="w-3 h-3 mr-1" />
+                Upload PDF
               </Button>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(true)}
-                className="text-xs text-sky-600 dark:text-sky-400 hover:underline font-medium"
+                className="text-xs text-indigo-400 hover:underline font-mono"
               >
-                Or select existing
+                select existing
               </button>
             </div>
           </div>
@@ -191,9 +187,9 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
           <button
             type="button"
             onClick={() => setIsAiModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300 font-medium text-xs transition-colors"
+            className="w-full flex items-center justify-center gap-1.5 p-2 rounded-md border border-[#27272A] hover:bg-[#18181B] text-[#A1A1AA] font-mono text-xs transition-colors"
           >
-            <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
             <span>Test AI Resume Matcher (Direct Text)</span>
           </button>
         </div>
@@ -205,16 +201,16 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
         onClose={() => setIsModalOpen(false)}
         title="Attach Resume Version"
       >
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-3.5">
           {resumes.length === 0 ? (
-            <div className="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 text-center space-y-3">
-              <UploadCloud className="w-8 h-8 mx-auto text-sky-500" />
+            <div className="p-4 rounded-lg border border-dashed border-[#27272A] bg-[#0E0E10] text-center space-y-2.5">
+              <UploadCloud className="w-6 h-6 mx-auto text-indigo-400" />
               <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  No Resumes in your Vault Yet
+                <p className="text-xs font-semibold text-[#FAFAFA]">
+                  No Resumes in Vault
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Upload your master or customized resume PDF to attach it to this job application.
+                <p className="text-xs text-[#71717A] mt-0.5">
+                  Upload your PDF resume to attach it to this job application.
                 </p>
               </div>
               <Button
@@ -226,8 +222,8 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
                   setIsUploadModalOpen(true);
                 }}
               >
-                <UploadCloud className="w-4 h-4 mr-1.5" />
-                Upload PDF Resume Now
+                <UploadCloud className="w-3.5 h-3.5 mr-1.5" />
+                Upload PDF Resume
               </Button>
             </div>
           ) : (
@@ -239,34 +235,34 @@ export const AttachedResumeSection: React.FC<AttachedResumeSectionProps> = ({
                 onChange={(e) => setSelectedResumeId(e.target.value)}
               />
 
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1">
+              <div className="flex items-center justify-between text-xs font-mono text-[#71717A] pt-1">
                 <button
                   type="button"
                   onClick={() => {
                     setIsModalOpen(false);
                     setIsUploadModalOpen(true);
                   }}
-                  className="text-sky-600 dark:text-sky-400 hover:underline font-medium inline-flex items-center gap-1"
+                  className="text-indigo-400 hover:underline inline-flex items-center gap-1"
                 >
-                  <Plus className="w-3 h-3" /> Upload new version
+                  <Plus className="w-3 h-3" /> upload new version
                 </button>
                 <Link
                   href="/resumes"
-                  className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline"
+                  className="text-[#71717A] hover:text-[#FAFAFA] underline"
                   target="_blank"
                 >
-                  Manage Vault <ExternalLink className="inline w-3 h-3" />
+                  manage vault <ExternalLink className="inline w-3 h-3" />
                 </Link>
               </div>
             </>
           )}
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+          <div className="flex justify-end gap-2.5 pt-2 border-t border-[#27272A]">
+            <Button type="button" variant="outline" size="sm" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
             {resumes.length > 0 && (
-              <Button type="submit" isLoading={isSaving}>
+              <Button type="submit" size="sm" isLoading={isSaving}>
                 Save Attachment
               </Button>
             )}

@@ -49,24 +49,24 @@ export const PipelineHealthScorecard: React.FC<PipelineHealthScorecardProps> = (
     score = Math.min(100, Math.max(20, score));
 
     let grade = 'B';
-    let gradeColor = 'text-sky-500 bg-sky-50 dark:bg-sky-950 border-sky-300 dark:border-sky-800';
+    let gradeColor = 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30';
     let summaryText = 'Healthy pipeline with active opportunities progressing through interview stages.';
 
     if (score >= 90) {
       grade = 'A+';
-      gradeColor = 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950 border-emerald-300 dark:border-emerald-800';
+      gradeColor = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
       summaryText = 'Outstanding momentum! High conversion rate from applied to interview with strong closing velocity.';
     } else if (score >= 80) {
       grade = 'A';
-      gradeColor = 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950 border-emerald-300 dark:border-emerald-800';
+      gradeColor = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
       summaryText = 'Strong pipeline health. Consistently passing resume screenings with strong candidate market fit.';
     } else if (score >= 70) {
       grade = 'B+';
-      gradeColor = 'text-sky-600 bg-sky-50 dark:bg-sky-950 border-sky-300 dark:border-sky-800';
+      gradeColor = 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30';
       summaryText = 'Good foundational momentum. Focus on interview round closing and following up on pending applications.';
     } else if (score < 60) {
-      grade = 'Needs Push';
-      gradeColor = 'text-amber-600 bg-amber-50 dark:bg-amber-950 border-amber-300 dark:border-amber-800';
+      grade = 'NEEDS PUSH';
+      gradeColor = 'text-amber-400 bg-amber-500/10 border-amber-500/30';
       summaryText = 'Pipeline needs replenishment. Increase weekly application volume and leverage AI ATS resume tailoring.';
     }
 
@@ -113,19 +113,19 @@ export const PipelineHealthScorecard: React.FC<PipelineHealthScorecardProps> = (
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-sky-950 to-indigo-950 border border-slate-800 text-white shadow-xl space-y-6 print:bg-white print:text-black print:border-none print:shadow-none">
+    <div className="p-5 rounded-lg bg-[#121214] border border-[#27272A] text-zinc-100 space-y-5 print:bg-white print:text-black print:border-none print:shadow-none">
       {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#27272A]">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30">
-              <ShieldCheck className="w-5 h-5" />
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-md bg-[#18181B] text-zinc-300 border border-[#27272A]">
+              <ShieldCheck className="w-4 h-4 text-indigo-400" />
             </div>
-            <h2 className="text-xl font-bold tracking-tight">
-              Executive Pipeline Health Scorecard
+            <h2 className="text-base font-semibold tracking-tight text-[#FAFAFA]">
+              Pipeline Health Scorecard
             </h2>
           </div>
-          <p className="text-xs text-slate-300">
+          <p className="text-xs text-zinc-400">
             Real-time diagnostics measuring conversion efficiency, momentum velocity, and compensation potential
           </p>
         </div>
@@ -134,82 +134,84 @@ export const PipelineHealthScorecard: React.FC<PipelineHealthScorecardProps> = (
           variant="secondary"
           size="sm"
           onClick={handlePrintReport}
-          className="bg-white/10 text-white hover:bg-white/20 border-white/20 text-xs self-start sm:self-center print:hidden flex items-center gap-1.5"
+          className="text-xs font-mono self-start sm:self-center print:hidden flex items-center gap-1.5"
         >
-          <Printer className="w-3.5 h-3.5" />
-          <span>Export / Print Summary</span>
+          <Printer className="w-3.5 h-3.5 mr-1" />
+          <span>Export / Print</span>
         </Button>
       </div>
 
       {/* Grade & Score Pillars Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
         {/* Overall Grade Card */}
-        <div className="md:col-span-1 p-5 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center justify-center text-center space-y-2">
-          <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
-            Overall Health Grade
+        <div className="md:col-span-1 p-4 rounded-md bg-[#0A0A0B] border border-[#27272A] flex flex-col items-center justify-center text-center space-y-2">
+          <span className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
+            Health Grade
           </span>
           <div
-            className={`text-3xl font-extrabold px-4 py-2 rounded-2xl border ${scorecard.gradeColor}`}
+            className={`text-2xl font-mono font-bold px-3.5 py-1 rounded border ${scorecard.gradeColor}`}
           >
             {scorecard.grade}
           </div>
-          <span className="text-xs text-sky-300 font-bold">
-            Health Score: {scorecard.score}/100
+          <span className="text-xs font-mono text-zinc-300">
+            Score: {scorecard.score}/100
           </span>
         </div>
 
         {/* 3 Pillars Summary */}
         <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
-            <span className="text-[11px] text-slate-400 font-medium">Applied ➔ Interview</span>
-            <p className="text-xl font-bold text-sky-300">
+          <div className="p-3.5 rounded-md bg-[#0A0A0B] border border-[#27272A] space-y-1 font-mono">
+            <span className="text-[11px] text-zinc-400">Applied ➔ Interview</span>
+            <p className="text-lg font-semibold text-zinc-100">
               {analytics.appliedToInterviewRate}%
             </p>
-            <p className="text-[10px] text-slate-400">
-              Industry Benchmark: ~15-20%
+            <p className="text-[10px] text-zinc-400">
+              Benchmark: ~15-20%
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
-            <span className="text-[11px] text-slate-400 font-medium">Interview ➔ Offer</span>
-            <p className="text-xl font-bold text-emerald-300">
+          <div className="p-3.5 rounded-md bg-[#0A0A0B] border border-[#27272A] space-y-1 font-mono">
+            <span className="text-[11px] text-zinc-400">Interview ➔ Offer</span>
+            <p className="text-lg font-semibold text-emerald-400">
               {analytics.interviewToOfferRate}%
             </p>
-            <p className="text-[10px] text-slate-400">
-              Industry Benchmark: ~20-30%
+            <p className="text-[10px] text-zinc-400">
+              Benchmark: ~20-30%
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
-            <span className="text-[11px] text-slate-400 font-medium">Active Pipeline</span>
-            <p className="text-xl font-bold text-amber-300">
+          <div className="p-3.5 rounded-md bg-[#0A0A0B] border border-[#27272A] space-y-1 font-mono">
+            <span className="text-[11px] text-zinc-400">Active Pipeline</span>
+            <p className="text-lg font-semibold text-amber-400">
               {analytics.activeApplications} Active
             </p>
-            <p className="text-[10px] text-slate-400">
-              Across {analytics.totalApplications} total applications
+            <p className="text-[10px] text-zinc-400">
+              {analytics.totalApplications} Total
             </p>
           </div>
         </div>
       </div>
 
       {/* Summary Narrative */}
-      <p className="text-xs text-slate-200 leading-relaxed bg-white/5 p-3.5 rounded-xl border border-white/10">
-        💡 <strong>Executive Summary:</strong> {scorecard.summaryText}
-      </p>
+      <div className="text-xs text-zinc-300 leading-relaxed bg-[#0A0A0B] p-3 rounded-md border border-[#27272A] flex items-start gap-2">
+        <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+        <p>
+          <strong className="text-[#FAFAFA] font-mono">Summary:</strong> {scorecard.summaryText}
+        </p>
+      </div>
 
       {/* Actionable Recommendations */}
       <div className="space-y-2">
-        <span className="text-xs font-bold text-sky-300 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-          <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-          <span>Diagnostic Action Plan for Maximum Callback Rates</span>
+        <span className="text-xs font-mono font-medium text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+          <span>Action Plan for Callback Rate Optimization</span>
         </span>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {scorecard.recommendations.map((rec, idx) => (
             <div
               key={idx}
-              className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-xs text-slate-200 leading-relaxed flex items-start gap-2"
+              className="p-3 rounded-md bg-[#0A0A0B] border border-[#27272A] text-xs text-zinc-300 leading-relaxed flex items-start gap-2"
             >
-              <span className="text-emerald-400 font-bold mt-0.5">#{idx + 1}</span>
+              <span className="text-indigo-400 font-mono font-semibold text-xs mt-0.5">0{idx + 1}</span>
               <span>{rec}</span>
             </div>
           ))}

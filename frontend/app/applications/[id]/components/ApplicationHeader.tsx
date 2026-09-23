@@ -23,7 +23,6 @@ import {
   Brain,
   Star,
   MapPin,
-  Briefcase,
   FileText,
 } from 'lucide-react';
 import {
@@ -90,7 +89,7 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
     const next = await toggleFavoriteApi(application.id, isStarred);
     setIsStarred(next);
     onUpdate({ ...application, is_favorite: next });
-    showToast(next ? 'Starred application ⭐️' : 'Removed from Starred', 'info');
+    showToast(next ? 'Starred application' : 'Removed from Starred', 'info');
   };
 
   const statusOptions = [
@@ -184,63 +183,63 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
   };
 
   const formattedAppliedDate = new Date(application.applied_date).toLocaleDateString('en-US', {
-    month: 'long',
+    month: 'short',
     day: 'numeric',
     year: 'numeric',
   });
 
   return (
-    <div className={`bg-white dark:bg-slate-900 border rounded-xl p-6 shadow-sm space-y-4 transition-all ${
-      isStarred ? 'border-amber-300 dark:border-amber-700/80 ring-1 ring-amber-400/20 bg-linear-to-b from-amber-50/20 to-transparent dark:from-amber-950/10' : 'border-slate-200 dark:border-slate-800'
+    <div className={`bg-[#121214] border rounded-lg p-5 space-y-4 text-[#FAFAFA] transition-colors ${
+      isStarred ? 'border-amber-500/40 bg-[#15130D]' : 'border-[#27272A]'
     }`}>
       {/* Back button */}
       <div>
         <Link
           href="/board"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-mono text-[#71717A] hover:text-[#FAFAFA] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Board</span>
+          <span>applications</span>
         </Link>
       </div>
 
       {/* Main header row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-semibold text-[#FAFAFA] tracking-tight">
               {application.company_name}
             </h1>
             <button
               onClick={handleStarToggle}
-              className={`p-1.5 rounded-lg border transition-all ${
+              className={`p-1 rounded transition-colors ${
                 isStarred
-                  ? 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/60 text-amber-500'
-                  : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400'
+                  ? 'text-amber-400 hover:text-amber-300'
+                  : 'text-[#52525B] hover:text-amber-400'
               }`}
               title={isStarred ? 'Unstar Application' : 'Star Application'}
             >
               <Star className={`w-4 h-4 ${isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
             </button>
             {isStarred && (
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80">
-                ⭐️ Starred
+              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-950/60 text-amber-400 border border-amber-800/60">
+                starred
               </span>
             )}
-            <Badge status={application.status} className="text-xs px-2.5 py-1" />
+            <Badge status={application.status} />
           </div>
-          <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <p className="text-base text-slate-600 dark:text-slate-300 font-medium">
+          <div className="flex items-center gap-2 mt-1 flex-wrap text-xs text-[#A1A1AA]">
+            <span className="font-medium text-[#FAFAFA]">
               {application.role_title}
-            </p>
+            </span>
             {application.work_mode && (
-              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
-                {application.work_mode}
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#18181B] border border-[#27272A] text-[#71717A]">
+                {application.work_mode.toLowerCase()}
               </span>
             )}
             {application.location && (
-              <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5" />
+              <span className="text-[11px] font-mono text-[#71717A] flex items-center gap-1">
+                <MapPin className="w-3 h-3 text-[#52525B]" />
                 <span>{application.location}</span>
               </span>
             )}
@@ -248,13 +247,12 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
         </div>
 
         {/* Action buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap font-mono text-xs">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Stage:</label>
             <select
               value={application.status}
               onChange={(e) => handleStatusQuickChange(e.target.value as ApplicationStatus)}
-              className="text-xs font-medium bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md px-2.5 py-1.5 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500"
+              className="text-xs bg-[#0A0A0B] border border-[#27272A] rounded px-2 py-1 text-[#FAFAFA] focus:outline-none focus:border-indigo-500 cursor-pointer font-mono"
             >
               {statusOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -268,10 +266,9 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
             variant="outline"
             size="sm"
             onClick={() => setIsCoverLetterOpen(true)}
-            className="border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
-            title="Generate AI Cover Letter or LinkedIn Recruiter Pitch"
+            title="Generate tailored cover letter or pitch"
           >
-            <FileText className="w-3.5 h-3.5 text-indigo-500 mr-1" />
+            <FileText className="w-3 h-3 text-indigo-400 mr-1" />
             <span>Cover Letter</span>
           </Button>
 
@@ -279,22 +276,20 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
             variant="outline"
             size="sm"
             onClick={() => setIsAiInterviewPrepOpen(true)}
-            className="border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50"
             title="Practice tailored AI Interview Questions"
           >
-            <Brain className="w-3.5 h-3.5 text-purple-500 mr-1" />
-            <span>Interview Prep</span>
+            <Brain className="w-3 h-3 text-indigo-400 mr-1" />
+            <span>Prep</span>
           </Button>
 
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsAiEmailModalOpen(true)}
-            className="border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/50"
             title="Generate AI Follow-up or Outreach Email"
           >
-            <Sparkles className="w-3.5 h-3.5 text-sky-500 mr-1" />
-            <span>AI Email</span>
+            <Sparkles className="w-3 h-3 text-indigo-400 mr-1" />
+            <span>Email</span>
           </Button>
 
           <Button
@@ -303,8 +298,7 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
             onClick={handleOpenEditModal}
             title="Edit application"
           >
-            <Edit2 className="w-3.5 h-3.5" />
-            <span>Edit</span>
+            <Edit2 className="w-3 h-3" />
           </Button>
 
           <Button
@@ -314,16 +308,16 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
             isLoading={isDeleting}
             title="Delete application"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-3 h-3" />
           </Button>
         </div>
       </div>
 
       {/* Meta tags (Date, Job posting URL, Contacts) */}
-      <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
-        <div className="flex items-center gap-1.5">
-          <Calendar className="w-4 h-4 text-slate-400" />
-          <span>Applied on {formattedAppliedDate}</span>
+      <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-[#27272A] text-xs font-mono text-[#71717A]">
+        <div className="flex items-center gap-1">
+          <Calendar className="w-3 h-3 text-[#52525B]" />
+          <span>applied {formattedAppliedDate}</span>
         </div>
 
         {application.job_posting_url && (
@@ -331,17 +325,17 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
             href={application.job_posting_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 text-sky-600 dark:text-sky-400 hover:underline font-medium"
+            className="flex items-center gap-1 text-indigo-400 hover:text-indigo-300 transition-colors"
           >
-            <ExternalLink className="w-4 h-4" />
-            <span>Job Posting URL</span>
+            <ExternalLink className="w-3 h-3" />
+            <span>posting URL</span>
           </a>
         )}
 
         {(application.salary_min || application.salary_max) && (
-          <div className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold">
-            <span>Target: </span>
-            <span>
+          <div className="flex items-center gap-1 text-[#A1A1AA]">
+            <span>target: </span>
+            <span className="text-[#FAFAFA]">
               {application.salary_min ? `$${Number(application.salary_min).toLocaleString()}` : ''}
               {application.salary_min && application.salary_max ? ' - ' : ''}
               {application.salary_max ? `$${Number(application.salary_max).toLocaleString()}` : ''}
@@ -350,9 +344,9 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
         )}
 
         {application.contact_name && (
-          <div className="text-slate-600 dark:text-slate-300">
-            <span>Recruiter: <strong>{application.contact_name}</strong></span>
-            {application.contact_email && <span className="text-slate-400"> ({application.contact_email})</span>}
+          <div className="text-[#71717A]">
+            <span>recruiter: <strong className="text-[#A1A1AA] font-sans">{application.contact_name}</strong></span>
+            {application.contact_email && <span className="text-[#52525B]"> ({application.contact_email})</span>}
           </div>
         )}
       </div>
@@ -364,8 +358,8 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
         title="Edit Application"
         maxWidth="lg"
       >
-        <form onSubmit={handleEditSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleEditSubmit} className="space-y-3.5 max-h-[75vh] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <Input
               label="Company Name"
               value={companyName}
@@ -380,7 +374,7 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <Input
               label="Applied Date"
               type="date"
@@ -402,7 +396,7 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <Input
               label="Location"
               placeholder="e.g. San Francisco, CA"
@@ -417,7 +411,7 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <Input
               label="Salary Min ($)"
               type="number"
@@ -434,7 +428,7 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <Input
               label="Recruiter Name"
               value={contactName}
@@ -451,23 +445,23 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-[#D4D4D8] mb-1">
               Job Description
             </label>
             <textarea
               rows={4}
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 font-mono focus:outline-none focus:ring-1 focus:ring-sky-500"
-              placeholder="Paste full job description for AI Resume Matcher..."
+              className="w-full px-3 py-2 text-xs bg-[#0A0A0B] border border-[#27272A] rounded-md text-[#FAFAFA] font-mono placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500"
+              placeholder="Paste full job description..."
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
+          <div className="flex justify-end gap-2.5 pt-3 border-t border-[#27272A]">
+            <Button type="button" variant="outline" size="sm" onClick={() => setIsEditModalOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" isLoading={isSaving}>
+            <Button type="submit" size="sm" isLoading={isSaving}>
               Save Changes
             </Button>
           </div>
