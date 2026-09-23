@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Patch,
   Delete,
@@ -21,6 +22,13 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 @UseGuards(JwtAuthGuard)
 export class InterviewsController {
   constructor(private readonly interviewsService: InterviewsService) {}
+
+  @Get('interviews')
+  @ApiOperation({ summary: 'Get all scheduled interviews for the authenticated user' })
+  @ApiResponse({ status: 200, description: 'List of all interviews with application details' })
+  async findAll(@CurrentUser('id') userId: string) {
+    return this.interviewsService.findAllForUser(userId);
+  }
 
   @Post('applications/:appId/interviews')
   @ApiOperation({ summary: 'Schedule a new interview round for an application' })

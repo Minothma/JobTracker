@@ -52,6 +52,35 @@ export class InterviewsService {
     });
   }
 
+  async findAllForUser(userId: string) {
+    return this.prisma.interviews.findMany({
+      where: {
+        applications: { user_id: userId },
+      },
+      include: {
+        applications: {
+          select: {
+            id: true,
+            company_name: true,
+            role_title: true,
+            status: true,
+            job_posting_url: true,
+            contact_name: true,
+            contact_email: true,
+            location: true,
+            work_mode: true,
+            salary_min: true,
+            salary_max: true,
+            currency: true,
+          },
+        },
+      },
+      orderBy: {
+        scheduled_at: 'asc',
+      },
+    });
+  }
+
   async remove(userId: string, id: string) {
     const interview = await this.prisma.interviews.findFirst({
       where: {
@@ -71,3 +100,4 @@ export class InterviewsService {
     return { message: 'Interview deleted successfully' };
   }
 }
+

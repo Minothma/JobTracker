@@ -5,22 +5,44 @@ import { Modal } from '../../../components/ui/Modal';
 import { Input, Select } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 import { apiFetch } from '../../../lib/api-client';
-import { Application, ApplicationStatus, Resume, WorkMode, ScrapedJobData } from '../../../lib/types';
+import { Application, ApplicationStatus, Resume, WorkMode, ScrapedJobData, ParsedJobDetails } from '../../../lib/types';
 import { useToast } from '../../../components/ui/Toast';
-import { ChevronDown, ChevronUp, Sparkles, RefreshCw, Link as LinkIcon, Zap } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
+  RefreshCw,
+  Link as LinkIcon,
+  Zap,
+  FileText,
+  CheckCircle2,
+  Tag,
+} from 'lucide-react';
 
 interface NewApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (newApp: Application) => void;
+  initialData?: {
+    company_name?: string;
+    role_title?: string;
+    job_posting_url?: string;
+    job_description?: string;
+  };
 }
 
 export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  initialData,
 }) => {
   const { showToast } = useToast();
+  const [autoFillMode, setAutoFillMode] = useState<'SMART_PASTE' | 'URL_SCRAPE'>('SMART_PASTE');
+  const [smartPasteText, setSmartPasteText] = useState('');
+  const [isParsingText, setIsParsingText] = useState(false);
+  const [detectedSkills, setDetectedSkills] = useState<string[]>([]);
+
   const [quickUrl, setQuickUrl] = useState('');
   const [isScraping, setIsScraping] = useState(false);
 
@@ -45,22 +67,25 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Reset form
-      setQuickUrl('');
-      setCompanyName('');
-      setRoleTitle('');
+      // Reset form or populate from initialData
+      setQuickUrl(initialData?.job_posting_url || '');
+      setCompanyName(initialData?.company_name || '');
+      setRoleTitle(initialData?.role_title || '');
       setAppliedDate(new Date().toISOString().split('T')[0]);
       setStatus('APPLIED');
-      setJobPostingUrl('');
+      setJobPostingUrl(initialData?.job_posting_url || '');
       setResumeId('');
-      setWorkMode('REMOTE');
+      const savedWorkMode = (typeof window !== 'undefined' ? localStorage.getItem('jobtracker_default_work_mode') : null) as WorkMode | null;
+      setWorkMode(savedWorkMode || 'REMOTE');
       setLocation('');
       setSalaryMin('');
       setSalaryMax('');
-      setJobDescription('');
+      setJobDescription(initialData?.job_description || '');
       setContactName('');
       setContactEmail('');
-      setShowAdvanced(false);
+      setSmartPasteText('');
+      setDetectedSkills([]);
+      setShowAdvanced(Boolean(initialData?.job_description));
       setError(null);
 
       // Fetch user's resumes
@@ -69,6 +94,44 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
         .catch(() => setResumes([]));
     }
   }, [isOpen]);
+
+  const handleParseJobText = async () => {
+    if (!smartPasteText.trim() || smartPasteText.trim().length < 15) {
+      showToast('Please paste a job description or text (at least 15 characters)', 'error');
+      return;
+    }
+
+    try {
+      setIsParsingText(true);
+      const data = await apiFetch<ParsedJobDetails>('/ai/parse-job-text', {
+        method: 'POST',
+        body: JSON.stringify({ text: smartPasteText.trim() }),
+      });
+
+      if (data.company_name) setCompanyName(data.company_name);
+      if (data.role_title) setRoleTitle(data.role_title);
+      if (data.work_mode) setWorkMode(data.work_mode);
+      if (data.location) setLocation(data.location);
+      if (data.salary_min) setSalaryMin(data.salary_min.toString());
+      if (data.salary_max) setSalaryMax(data.salary_max.toString());
+      if (data.contact_name) setContactName(data.contact_name);
+      if (data.contact_email) setContactEmail(data.contact_email);
+      if (data.job_summary) setJobDescription(data.job_summary);
+      if (data.key_skills && data.key_skills.length > 0) {
+        setDetectedSkills(data.key_skills);
+      }
+      setShowAdvanced(true);
+
+      showToast(
+        `AI parsed ${data.role_title || 'Role'} at ${data.company_name || 'Company'} (${data.extracted_with})`,
+        'success',
+      );
+    } catch (err: any) {
+      showToast(err.message || 'Failed to parse job description', 'error');
+    } finally {
+      setIsParsingText(false);
+    }
+  };
 
   const handleScrapeUrl = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,46 +242,137 @@ export const NewApplicationModal: React.FC<NewApplicationModalProps> = ({
         </div>
       )}
 
-      {/* AI Job Link Auto-fill Bar */}
-      <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-purple-500/10 border border-sky-500/20">
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <span className="text-xs font-semibold text-sky-400 flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5 text-amber-400" />
-            Quick Auto-Fill from Job Link (AI Scraper)
-          </span>
-          <span className="text-[10px] text-slate-400">LinkedIn, Indeed, Greenhouse, Lever, etc.</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-            <input
-              type="url"
-              placeholder="Paste job posting URL (e.g. https://careers.company.com/job/...)"
-              value={quickUrl}
-              onChange={(e) => setQuickUrl(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950/80 border border-slate-700/80 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            />
+      {/* AI Smart Auto-Fill Hub (Text Paste & Link Scraper) */}
+      <div className="mb-5 p-3.5 rounded-2xl bg-gradient-to-br from-indigo-950/40 via-sky-950/40 to-slate-900 border border-sky-500/20 shadow-md">
+        {/* Tab switchers */}
+        <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-white/10">
+          <div className="flex items-center gap-1.5 p-0.5 rounded-lg bg-slate-900/80 border border-slate-800">
+            <button
+              type="button"
+              onClick={() => setAutoFillMode('SMART_PASTE')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                autoFillMode === 'SMART_PASTE'
+                  ? 'bg-sky-600 text-white shadow-xs'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>AI Smart Paste (Instant Extract)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setAutoFillMode('URL_SCRAPE')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                autoFillMode === 'URL_SCRAPE'
+                  ? 'bg-sky-600 text-white shadow-xs'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <LinkIcon className="w-3.5 h-3.5 text-sky-300" />
+              <span>URL Scraper</span>
+            </button>
           </div>
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleScrapeUrl}
-            disabled={isScraping || !quickUrl.trim()}
-            className="text-xs bg-sky-600 hover:bg-sky-500 text-white shrink-0"
-          >
-            {isScraping ? (
-              <>
-                <RefreshCw className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                Extracting...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                Auto-fill
-              </>
-            )}
-          </Button>
+
+          <span className="hidden sm:inline-block text-[11px] text-sky-400 font-medium">
+            Powered by Google Gemini
+          </span>
         </div>
+
+        {/* Tab 1: AI Smart Paste (Text / Raw Description) */}
+        {autoFillMode === 'SMART_PASTE' ? (
+          <div className="space-y-2.5 animate-in fade-in duration-150">
+            <div className="relative">
+              <textarea
+                rows={3}
+                placeholder="Paste raw job description, LinkedIn post, or email text here (e.g., 'Looking for a Senior Full Stack Developer at Netflix. Remote. $140k-$170k USD...')..."
+                value={smartPasteText}
+                onChange={(e) => setSmartPasteText(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-slate-950/80 border border-slate-700/80 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 font-sans"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-1 text-[11px] text-slate-400">
+                <span>Detects: Company, Role, Salary, Location, Work Mode & Skills</span>
+              </div>
+
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleParseJobText}
+                disabled={isParsingText || !smartPasteText.trim()}
+                className="text-xs bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white shadow-sm shrink-0"
+              >
+                {isParsingText ? (
+                  <>
+                    <RefreshCw className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    Analyzing with AI...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-3.5 w-3.5 mr-1.5 text-amber-300" />
+                    Auto-Fill Form with AI
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Detected Skills badges */}
+            {detectedSkills.length > 0 && (
+              <div className="pt-2 border-t border-white/5 flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Extracted Skills:
+                </span>
+                {detectedSkills.map((skill, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Tab 2: URL Scraper */
+          <div className="space-y-2 animate-in fade-in duration-150">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                <input
+                  type="url"
+                  placeholder="Paste job posting URL (e.g. https://careers.company.com/job/...)"
+                  value={quickUrl}
+                  onChange={(e) => setQuickUrl(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-950/80 border border-slate-700/80 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                />
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleScrapeUrl}
+                disabled={isScraping || !quickUrl.trim()}
+                className="text-xs bg-sky-600 hover:bg-sky-500 text-white shrink-0"
+              >
+                {isScraping ? (
+                  <>
+                    <RefreshCw className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    Extracting...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                    Extract Link
+                  </>
+                )}
+              </Button>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Scrapes OpenGraph and schema metadata from supported job boards.
+            </p>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">

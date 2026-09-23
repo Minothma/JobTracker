@@ -20,10 +20,45 @@ export const CURRENCY_SYMBOLS: Record<OfferCurrency, string> = {
 };
 
 /**
+ * Standard baseline exchange rates (Rate per 1 USD)
+ */
+export const USD_EXCHANGE_RATES: Record<string, number> = {
+  USD: 1.0,
+  EUR: 0.92,
+  GBP: 0.79,
+  LKR: 310.0,
+  CAD: 1.36,
+  AUD: 1.52,
+  SGD: 1.35,
+  INR: 83.5,
+  JPY: 155.0,
+};
+
+/**
+ * Converts monetary amount from one currency to another using standard baseline rates
+ */
+export function convertCurrency(
+  amount: number,
+  fromCurrency: OfferCurrency | string = 'USD',
+  toCurrency: OfferCurrency | string = 'USD',
+): number {
+  if (fromCurrency === toCurrency || !amount) return amount;
+
+  const fromRate = USD_EXCHANGE_RATES[fromCurrency] || 1.0;
+  const toRate = USD_EXCHANGE_RATES[toCurrency] || 1.0;
+
+  // Convert to USD baseline first, then to target currency
+  const inUsd = amount / fromRate;
+  const converted = inUsd * toRate;
+
+  return Math.round(converted);
+}
+
+/**
  * Formats a monetary amount with currency symbol and commas
  */
-export function formatCurrency(amount: number, currency: OfferCurrency = 'USD'): string {
-  const symbol = CURRENCY_SYMBOLS[currency] || '$';
+export function formatCurrency(amount: number, currency: OfferCurrency | string = 'USD'): string {
+  const symbol = (CURRENCY_SYMBOLS as Record<string, string>)[currency] || `${currency} `;
   return `${symbol}${amount.toLocaleString('en-US')}`;
 }
 
@@ -33,6 +68,7 @@ export function formatCurrency(amount: number, currency: OfferCurrency = 'USD'):
 export function calculateTotalCompensation(offer: Pick<OfferPackage, 'base_salary' | 'bonus' | 'equity'>): number {
   return (Number(offer.base_salary) || 0) + (Number(offer.bonus) || 0) + (Number(offer.equity) || 0);
 }
+
 
 /**
  * Fetch all offers for the current user from backend API

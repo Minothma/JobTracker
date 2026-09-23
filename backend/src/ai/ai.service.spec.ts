@@ -100,4 +100,31 @@ describe('AiService', () => {
       await expect(service.scrapeJobPostingUrl({ url: 'not-a-valid-url' })).rejects.toThrow();
     });
   });
+
+  describe('parseJobText', () => {
+    it('should parse raw job posting text and extract structured fields', async () => {
+      const sampleText = `Senior Full Stack Developer at TechVentures Inc.
+Location: Remote (US & Canada).
+We are looking for a Senior Developer experienced in React, TypeScript, Node.js, and Docker.
+Salary Range: $130,000 - $160,000 USD per year.
+Please send resumes to jobs@techventures.com`;
+
+      const result = await service.parseJobText('user-1', { text: sampleText });
+
+      expect(result).toBeDefined();
+      expect(result.role_title).toContain('Senior Full Stack Developer');
+      expect(result.company_name).toContain('TechVentures');
+      expect(result.work_mode).toBe('REMOTE');
+      expect(result.salary_min).toBe(130000);
+      expect(result.salary_max).toBe(160000);
+      expect(result.currency).toBe('USD');
+      expect(result.contact_email).toBe('jobs@techventures.com');
+      expect(result.key_skills).toContain('React');
+      expect(result.key_skills).toContain('TypeScript');
+    });
+
+    it('should throw error for short or empty text', async () => {
+      await expect(service.parseJobText('user-1', { text: 'too short' })).rejects.toThrow();
+    });
+  });
 });

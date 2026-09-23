@@ -5,10 +5,13 @@ import { useParams, useRouter } from 'next/navigation';
 import { apiFetch } from '../../../lib/api-client';
 import { Application } from '../../../lib/types';
 import { ApplicationHeader } from './components/ApplicationHeader';
+import { StageJourneySection } from './components/StageJourneySection';
 import { InterviewSection } from './components/InterviewSection';
+import { TasksSection } from './components/TasksSection';
 import { NotesSection } from './components/NotesSection';
 import { AttachedResumeSection } from './components/AttachedResumeSection';
 import { OfferPackageSection } from './components/OfferPackageSection';
+import { ActivityTimelineSection } from './components/ActivityTimelineSection';
 import { useToast } from '../../../components/ui/Toast';
 
 export default function ApplicationDetailPage() {
@@ -55,10 +58,19 @@ export default function ApplicationDetailPage() {
         onUpdate={(updated) => setApplication((prev) => (prev ? { ...prev, ...updated } : updated))}
       />
 
+      {/* Stage Journey & Pipeline Velocity Card */}
+      <StageJourneySection application={application} />
+
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column (2/3): Interview rounds & Notes */}
+        {/* Left Column (2/3): Action Items, Interview rounds & Notes */}
         <div className="lg:col-span-2 space-y-6">
+          <TasksSection
+            applicationId={application.id}
+            companyName={application.company_name}
+            roleTitle={application.role_title}
+          />
+
           <InterviewSection
             applicationId={application.id}
             companyName={application.company_name}
@@ -88,6 +100,11 @@ export default function ApplicationDetailPage() {
           />
         </div>
       </div>
+
+      {/* Chronological Activity & Audit Timeline */}
+      <ActivityTimelineSection application={application} />
     </div>
   );
 }
+
+

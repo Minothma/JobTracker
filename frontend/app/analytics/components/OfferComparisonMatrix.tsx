@@ -6,8 +6,10 @@ import {
   fetchUserOffers,
   calculateTotalCompensation,
   formatCurrency,
+  convertCurrency,
   OFFERS_CHANGED_EVENT,
 } from '../../../lib/offers';
+
 import { OfferPackage } from '../../../lib/types';
 import {
   Award,
@@ -15,11 +17,24 @@ import {
   Building2,
   Sparkles,
   ArrowRight,
+  Globe,
+  DollarSign,
 } from 'lucide-react';
+
+const NORMALIZED_CURRENCIES = [
+  { label: 'Original Currencies', value: 'ORIGINAL' },
+  { label: 'Normalized in USD ($)', value: 'USD' },
+  { label: 'Normalized in EUR (€)', value: 'EUR' },
+  { label: 'Normalized in GBP (£)', value: 'GBP' },
+  { label: 'Normalized in LKR (Rs.)', value: 'LKR' },
+  { label: 'Normalized in CAD (CA$)', value: 'CAD' },
+  { label: 'Normalized in AUD (AU$)', value: 'AUD' },
+];
 
 export const OfferComparisonMatrix: React.FC = () => {
   const [offers, setOffers] = useState<OfferPackage[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [normalizedCurrency, setNormalizedCurrency] = useState<string>('ORIGINAL');
 
   const loadOffers = async () => {
     try {
@@ -34,6 +49,12 @@ export const OfferComparisonMatrix: React.FC = () => {
   };
 
   useEffect(() => {
+    // Load default currency preference if set
+    const savedCurrency = localStorage.getItem('jobtracker_default_currency');
+    if (savedCurrency && savedCurrency !== 'USD') {
+      // Optional: initialize with preferred currency if multiple offers exist
+    }
+
     loadOffers();
 
     const handleChanged = () => {
@@ -47,10 +68,21 @@ export const OfferComparisonMatrix: React.FC = () => {
   }, []);
 
   const offersList = useMemo(() => {
-    return [...offers].sort(
-      (a, b) => calculateTotalCompensation(b) - calculateTotalCompensation(a),
-    );
-  }, [offers]);
+    return [...offers].sort((a, b) => {
+      const aTc = calculateTotalCompensation(a);
+      const bTc = calculateTotalCompensation(b);
+
+      const aNorm = normalizedCurrency === 'ORIGINAL'
+        ? convertCurrency(aTc, a.currency, 'USD')
+        : convertCurrency(aTc, a.currency, normalizedCurrency);
+
+      const bNorm = normalizedCurrency === 'ORIGINAL'
+        ? convertCurrency(bTc, b.currency, 'USD')
+        : convertCurrency(bTc, b.currency, normalizedCurrency);
+
+      return bNorm - aNorm;
+    });
+  }, [offers, normalizedCurrency]);
 
   if (loading && offersList.length === 0) {
     return (
@@ -87,7 +119,10 @@ export const OfferComparisonMatrix: React.FC = () => {
   }
 
   const topOffer = offersList[0];
-  const maxTC = calculateTotalCompensation(topOffer);
+  const rawTopTc = calculateTotalCompensation(topOffer);
+  const normalizedTopTc = normalizedCurrency === 'ORIGINAL'
+    ? rawTopTc
+    : convertCurrency(rawTopTc, topOffer.currency, normalizedCurrency);
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-6">
@@ -110,21 +145,43 @@ export const OfferComparisonMatrix: React.FC = () => {
           </div>
         </div>
 
-        {/* Top Offer Highlight Badge */}
-        {topOffer && (
-          <div className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-50 to-emerald-50 dark:from-amber-950/30 dark:to-emerald-950/30 border border-amber-200 dark:border-amber-800/60 flex items-center gap-2.5">
-            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-            <div className="text-xs">
-              <span className="text-slate-500 dark:text-slate-400">Top Offer: </span>
-              <span className="font-bold text-slate-900 dark:text-white">
-                {topOffer.applications?.company_name || 'Offer'}
-              </span>{' '}
-              <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
-                ({formatCurrency(maxTC, topOffer.currency)} TC)
-              </span>
-            </div>
+        {/* Currency Converter & Top Offer Highlight Badge */}
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Currency Normalizer Dropdown */}
+          <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+            <Globe className="w-3.5 h-3.5 text-sky-500" />
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Currency:</span>
+            <select
+              value={normalizedCurrency}
+              onChange={(e) => setNormalizedCurrency(e.target.value)}
+              className="bg-transparent font-semibold text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
+            >
+              {NORMALIZED_CURRENCIES.map((c) => (
+                <option key={c.value} value={c.value} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                  {c.label}
+                </option>
+              ))}
+            </select>
           </div>
-        )}
+
+          {topOffer && (
+            <div className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-50 to-emerald-50 dark:from-amber-950/30 dark:to-emerald-950/30 border border-amber-200 dark:border-amber-800/60 flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <div className="text-xs">
+                <span className="text-slate-500 dark:text-slate-400">Top Offer: </span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {topOffer.applications?.company_name || 'Offer'}
+                </span>{' '}
+                <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
+                  ({formatCurrency(
+                    normalizedCurrency === 'ORIGINAL' ? rawTopTc : normalizedTopTc,
+                    normalizedCurrency === 'ORIGINAL' ? topOffer.currency : normalizedCurrency
+                  )} TC)
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Comparison Table */}
@@ -144,8 +201,27 @@ export const OfferComparisonMatrix: React.FC = () => {
 
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-sm">
             {offersList.map((item, idx) => {
-              const tc = calculateTotalCompensation(item);
+              const rawTc = calculateTotalCompensation(item);
               const isTop = idx === 0;
+
+              const isNormalized = normalizedCurrency !== 'ORIGINAL' && normalizedCurrency !== item.currency;
+              const displayCurrency = normalizedCurrency === 'ORIGINAL' ? item.currency : normalizedCurrency;
+
+              const displayTc = isNormalized
+                ? convertCurrency(rawTc, item.currency, normalizedCurrency)
+                : rawTc;
+
+              const displayBase = isNormalized
+                ? convertCurrency(Number(item.base_salary), item.currency, normalizedCurrency)
+                : Number(item.base_salary);
+
+              const displayBonus = isNormalized && Number(item.bonus) > 0
+                ? convertCurrency(Number(item.bonus), item.currency, normalizedCurrency)
+                : Number(item.bonus);
+
+              const displayEquity = isNormalized && Number(item.equity) > 0
+                ? convertCurrency(Number(item.equity), item.currency, normalizedCurrency)
+                : Number(item.equity);
 
               return (
                 <tr
@@ -190,22 +266,36 @@ export const OfferComparisonMatrix: React.FC = () => {
                           : 'text-slate-900 dark:text-slate-100'
                       }`}
                     >
-                      {formatCurrency(tc, item.currency)}
+                      {formatCurrency(displayTc, displayCurrency)}
                     </span>
-                    <span className="text-[11px] text-slate-400 block">/ year</span>
+                    <span className="text-[11px] text-slate-400 block">
+                      {isNormalized ? `(Orig: ${formatCurrency(rawTc, item.currency)})` : '/ year'}
+                    </span>
                   </td>
 
                   {/* Base Salary */}
                   <td className="py-3.5 px-4 text-right text-slate-700 dark:text-slate-300 font-semibold text-xs">
-                    {formatCurrency(Number(item.base_salary), item.currency)}
+                    <div>{formatCurrency(displayBase, displayCurrency)}</div>
+                    {isNormalized && (
+                      <span className="text-[10px] text-slate-400 font-normal">
+                        {formatCurrency(Number(item.base_salary), item.currency)}
+                      </span>
+                    )}
                   </td>
 
                   {/* Bonus */}
                   <td className="py-3.5 px-4 text-right text-xs">
                     {Number(item.bonus) > 0 ? (
-                      <span className="font-semibold text-slate-700 dark:text-slate-300">
-                        {formatCurrency(Number(item.bonus), item.currency)}
-                      </span>
+                      <div>
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                          {formatCurrency(displayBonus, displayCurrency)}
+                        </span>
+                        {isNormalized && (
+                          <span className="text-[10px] text-slate-400 block font-normal">
+                            {formatCurrency(Number(item.bonus), item.currency)}
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-slate-400">—</span>
                     )}
@@ -214,9 +304,16 @@ export const OfferComparisonMatrix: React.FC = () => {
                   {/* Equity */}
                   <td className="py-3.5 px-4 text-right text-xs">
                     {Number(item.equity) > 0 ? (
-                      <span className="font-semibold text-slate-700 dark:text-slate-300">
-                        {formatCurrency(Number(item.equity), item.currency)}
-                      </span>
+                      <div>
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                          {formatCurrency(displayEquity, displayCurrency)}
+                        </span>
+                        {isNormalized && (
+                          <span className="text-[10px] text-slate-400 block font-normal">
+                            {formatCurrency(Number(item.equity), item.currency)}
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-slate-400">—</span>
                     )}

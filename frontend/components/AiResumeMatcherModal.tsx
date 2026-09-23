@@ -42,23 +42,49 @@ export const AiResumeMatcherModal: React.FC<AiResumeMatcherModalProps> = ({
   const [jobDescription, setJobDescription] = useState<string>('');
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<string>(initialResumeId || '');
+  const [extractedResumeText, setExtractedResumeText] = useState<string>('');
+  const [wordCount, setWordCount] = useState<number>(0);
+  const [loadingText, setLoadingText] = useState<boolean>(false);
+  const [showCustomResumeEditor, setShowCustomResumeEditor] = useState<boolean>(false);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [matchResult, setMatchResult] = useState<AiMatchResponse | null>(null);
   const [copiedTipIndex, setCopiedTipIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedResumeId(initialResumeId || '');
+      const activeId = initialResumeId || '';
+      setSelectedResumeId(activeId);
       apiFetch<Resume[]>('/resumes')
         .then((data) => {
           setResumes(data);
-          if (!selectedResumeId && data.length > 0) {
+          if (!activeId && data.length > 0) {
             setSelectedResumeId(data[0].id);
           }
         })
         .catch(() => setResumes([]));
     }
   }, [isOpen, initialResumeId]);
+
+  // Fetch extracted resume text whenever selected resume changes
+  useEffect(() => {
+    if (!selectedResumeId) {
+      setExtractedResumeText('');
+      setWordCount(0);
+      return;
+    }
+
+    setLoadingText(true);
+    apiFetch<{ extracted_text: string; word_count: number }>(`/resumes/${selectedResumeId}/text`)
+      .then((data) => {
+        setExtractedResumeText(data.extracted_text || '');
+        setWordCount(data.word_count || 0);
+      })
+      .catch(() => {
+        setExtractedResumeText('');
+        setWordCount(0);
+      })
+      .finally(() => setLoadingText(false));
+  }, [selectedResumeId]);
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +100,7 @@ export const AiResumeMatcherModal: React.FC<AiResumeMatcherModalProps> = ({
         body: JSON.stringify({
           job_description: jobDescription.trim(),
           resume_id: selectedResumeId || undefined,
+          resume_text: extractedResumeText.trim() || undefined,
           role_title: roleTitle,
           company_name: companyName,
         }),
@@ -135,9 +162,18 @@ Requirements:
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Resume Selector */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                Select Resume Version
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Select Resume Version
+                </label>
+                {wordCount > 0 && (
+                  <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    {wordCount} words extracted
+                  </span>
+                )}
+              </div>
+
               <select
                 value={selectedResumeId}
                 onChange={(e) => setSelectedResumeId(e.target.value)}
@@ -155,6 +191,19 @@ Requirements:
                   </option>
                 )}
               </select>
+
+              {/* Toggle to view/edit extracted text */}
+              <div className="mt-1.5 flex items-center justify-between text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => setShowCustomResumeEditor((prev) => !prev)}
+                  className="text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1"
+                >
+                  <FileText className="w-3 h-3" />
+                  <span>{showCustomResumeEditor ? 'Hide Resume Text' : 'View / Edit Resume Text'}</span>
+                </button>
+                {loadingText && <span className="text-slate-400 animate-pulse">Extracting text...</span>}
+              </div>
             </div>
 
             {/* Quick Helper Button */}
@@ -169,6 +218,22 @@ Requirements:
               </button>
             </div>
           </div>
+
+          {/* Optional Resume Text Preview / Editor */}
+          {showCustomResumeEditor && (
+            <div className="space-y-1 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                Extracted Resume Content (Sent to AI)
+              </label>
+              <textarea
+                rows={4}
+                value={extractedResumeText}
+                onChange={(e) => setExtractedResumeText(e.target.value)}
+                placeholder="Extracted resume text..."
+                className="w-full text-xs font-mono p-2.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500"
+              />
+            </div>
+          )}
 
           {/* Job Description Textarea */}
           <div>

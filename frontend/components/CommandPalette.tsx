@@ -7,6 +7,7 @@ import { Application } from '../lib/types';
 import {
   Search,
   Briefcase,
+  Calendar,
   BarChart3,
   FileText,
   Plus,
@@ -20,9 +21,13 @@ import {
   X,
   Star,
   Brain,
+  Sliders,
+  Shield,
+  Users,
 } from 'lucide-react';
 import { exportApplicationsToCsv } from '../lib/export-csv';
 import { useToast } from './ui/Toast';
+import { AiCoverLetterModal } from './AiCoverLetterModal';
 
 export const OPEN_COMMAND_PALETTE_EVENT = 'jobtracker_open_command_palette';
 
@@ -46,6 +51,7 @@ export const CommandPalette: React.FC = () => {
   const router = useRouter();
   const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [isCoverLetterOpen, setIsCoverLetterOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -116,6 +122,22 @@ export const CommandPalette: React.FC = () => {
         onSelect: () => router.push('/board'),
       },
       {
+        id: 'nav-interviews',
+        title: 'Interviews & Schedule Hub',
+        subtitle: 'Upcoming rounds, calendar invites & countdown timers',
+        category: 'Navigation',
+        icon: <Calendar className="w-4 h-4 text-sky-500" />,
+        onSelect: () => router.push('/interviews'),
+      },
+      {
+        id: 'nav-contacts',
+        title: 'Recruiter & Contacts Directory',
+        subtitle: 'Manage recruiters, hiring managers, and instant outreach drafts',
+        category: 'Navigation',
+        icon: <Users className="w-4 h-4 text-cyan-500" />,
+        onSelect: () => router.push('/contacts'),
+      },
+      {
         id: 'nav-analytics',
         title: 'Analytics & Insights',
         subtitle: 'Funnel conversion, velocity & offer comparison',
@@ -131,10 +153,28 @@ export const CommandPalette: React.FC = () => {
         icon: <FileText className="w-4 h-4 text-violet-500" />,
         onSelect: () => router.push('/resumes'),
       },
+      {
+        id: 'nav-settings',
+        title: 'Account Settings & Preferences',
+        subtitle: 'Manage credentials, default currency, and full JSON data backup',
+        category: 'Navigation',
+        icon: <Sliders className="w-4 h-4 text-slate-500" />,
+        onSelect: () => router.push('/settings'),
+      },
     );
 
     // 2. Quick Actions
     list.push(
+      {
+        id: 'act-ai-cover-letter',
+        title: 'Generate AI Cover Letter / InMail Pitch',
+        subtitle: 'Create tailored application letters and LinkedIn recruiter pitches',
+        category: 'Actions',
+        icon: <Sparkles className="w-4 h-4 text-indigo-500" />,
+        onSelect: () => {
+          setIsCoverLetterOpen(true);
+        },
+      },
       {
         id: 'act-ai-practice',
         title: 'AI Mock Interview Prep',
@@ -363,6 +403,13 @@ export const CommandPalette: React.FC = () => {
           </span>
         </div>
       </div>
+
+      {/* AI Cover Letter Generator Modal */}
+      <AiCoverLetterModal
+        isOpen={isCoverLetterOpen}
+        onClose={() => setIsCoverLetterOpen(false)}
+      />
     </div>
   );
 };
+

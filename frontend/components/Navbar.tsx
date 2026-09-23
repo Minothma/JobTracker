@@ -8,6 +8,7 @@ import { apiFetch } from '../lib/api-client';
 import { StaleApplication, NotificationAlertsResponse, NotificationCheckResult } from '../lib/types';
 import {
   Briefcase,
+  Calendar,
   FileText,
   BarChart3,
   Moon,
@@ -19,6 +20,7 @@ import {
   RefreshCw,
   AlertTriangle,
   Search,
+  Users,
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useToast } from './ui/Toast';
@@ -125,6 +127,30 @@ export const Navbar: React.FC = () => {
             </Link>
 
             <Link
+              href="/interviews"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                pathname === '/interviews'
+                  ? 'bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Interviews</span>
+            </Link>
+
+            <Link
+              href="/contacts"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                pathname === '/contacts'
+                  ? 'bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>Contacts</span>
+            </Link>
+
+            <Link
               href="/analytics"
               className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 pathname === '/analytics'
@@ -147,8 +173,20 @@ export const Navbar: React.FC = () => {
               <FileText className="w-4 h-4" />
               <span>Resumes</span>
             </Link>
+
+            <Link
+              href="/settings"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                pathname === '/settings'
+                  ? 'bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <span>Settings</span>
+            </Link>
           </nav>
         </div>
+
 
         {/* Center/Right: Quick Search Command Trigger */}
         <button

@@ -20,7 +20,9 @@ import {
   Trash2,
   Calendar,
   Sparkles,
+  TrendingUp,
 } from 'lucide-react';
+import { AiOfferNegotiationModal } from '../../../../components/AiOfferNegotiationModal';
 
 interface OfferPackageSectionProps {
   application: Application;
@@ -47,6 +49,7 @@ export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ applic
   const { showToast } = useToast();
   const [offer, setOffer] = useState<OfferPackage | null>(application.offers || null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isNegotiationModalOpen, setIsNegotiationModalOpen] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
   // Form inputs
@@ -249,6 +252,19 @@ export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ applic
               )}
             </div>
           )}
+
+          {/* AI Counter-Strategy Trigger Button */}
+          <div className="pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsNegotiationModalOpen(true)}
+              className="w-full flex items-center justify-center gap-1.5 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs py-2 shadow-sm font-semibold"
+            >
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+              <span>AI Counter-Offer Strategy & Script</span>
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="text-center py-6 space-y-3">
@@ -374,6 +390,21 @@ export const OfferPackageSection: React.FC<OfferPackageSectionProps> = ({ applic
           </div>
         </form>
       </Modal>
+
+      {/* AI Salary Negotiation & Counter-Strategy Modal */}
+      {offer && (
+        <AiOfferNegotiationModal
+          isOpen={isNegotiationModalOpen}
+          onClose={() => setIsNegotiationModalOpen(false)}
+          companyName={application.company_name}
+          roleTitle={application.role_title}
+          currentBase={Number(offer.base_salary)}
+          currentBonus={Number(offer.bonus)}
+          currentEquity={Number(offer.equity)}
+          currency={offer.currency}
+          workMode={offer.work_mode}
+        />
+      )}
     </div>
   );
 };

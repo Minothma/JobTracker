@@ -23,6 +23,8 @@ interface AiEmailGeneratorModalProps {
   onClose: () => void;
   companyName: string;
   roleTitle: string;
+  initialType?: AiEmailType;
+  initialRecipientName?: string;
 }
 
 const EMAIL_TYPES: { type: AiEmailType; label: string; desc: string }[] = [
@@ -59,10 +61,12 @@ export const AiEmailGeneratorModal: React.FC<AiEmailGeneratorModalProps> = ({
   onClose,
   companyName,
   roleTitle,
+  initialType,
+  initialRecipientName,
 }) => {
   const { showToast } = useToast();
 
-  const [selectedType, setSelectedType] = useState<AiEmailType>('FOLLOW_UP');
+  const [selectedType, setSelectedType] = useState<AiEmailType>(initialType || 'FOLLOW_UP');
   const [selectedTone, setSelectedTone] = useState<AiEmailTone>('PROFESSIONAL');
   const [recipientName, setRecipientName] = useState<string>('');
   const [extraNotes, setExtraNotes] = useState<string>('');
@@ -71,6 +75,20 @@ export const AiEmailGeneratorModal: React.FC<AiEmailGeneratorModalProps> = ({
   const [emailResult, setEmailResult] = useState<AiEmailResponse | null>(null);
   const [copiedSubject, setCopiedSubject] = useState<boolean>(false);
   const [copiedBody, setCopiedBody] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      if (initialType) {
+        setSelectedType(initialType);
+      }
+      if (initialRecipientName) {
+        setRecipientName(initialRecipientName);
+      } else {
+        setRecipientName('');
+      }
+    }
+  }, [isOpen, initialType, initialRecipientName]);
+
 
   const handleGenerate = async () => {
     try {

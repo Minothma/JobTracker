@@ -7,6 +7,7 @@ import { AnalyticsData, Application } from '../../lib/types';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { OfferComparisonMatrix } from './components/OfferComparisonMatrix';
+import { PipelineHealthScorecard } from './components/PipelineHealthScorecard';
 import { useToast } from '../../components/ui/Toast';
 import {
   BarChart3,
@@ -268,6 +269,9 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </div>
+
+      {/* Executive Pipeline Health Scorecard */}
+      <PipelineHealthScorecard analytics={overview} />
 
       {/* Main Grid: Conversion Funnel & Status Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

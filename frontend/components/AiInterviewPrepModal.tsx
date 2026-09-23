@@ -10,6 +10,7 @@ import {
   InterviewQuestion,
   InterviewRoundType,
   Resume,
+  AiAnswerEvaluationResponse,
 } from '../lib/types';
 import { useToast } from './ui/Toast';
 import {
@@ -27,6 +28,10 @@ import {
   FileText,
   ShieldCheck,
   Zap,
+  Award,
+  ThumbsUp,
+  AlertTriangle,
+  MessageSquare,
 } from 'lucide-react';
 
 interface AiInterviewPrepModalProps {
@@ -37,6 +42,7 @@ interface AiInterviewPrepModalProps {
   roleTitle?: string;
   jobDescription?: string;
   initialResumeId?: string | null;
+  initialRoundType?: InterviewRoundType;
 }
 
 export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
@@ -47,9 +53,10 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
   roleTitle = 'Software Engineer',
   jobDescription = '',
   initialResumeId,
+  initialRoundType = 'MIXED',
 }) => {
   const { showToast } = useToast();
-  const [roundType, setRoundType] = useState<InterviewRoundType>('MIXED');
+  const [roundType, setRoundType] = useState<InterviewRoundType>(initialRoundType);
   const [focusAreaInput, setFocusAreaInput] = useState<string>('');
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<string>(initialResumeId || '');
@@ -58,8 +65,15 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
   const [expandedQuestions, setExpandedQuestions] = useState<Record<string, boolean>>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  // STAR Evaluation state
+  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
+  const [evaluations, setEvaluations] = useState<Record<string, AiAnswerEvaluationResponse>>({});
+  const [evaluatingQuestionId, setEvaluatingQuestionId] = useState<string | null>(null);
+  const [practiceOpen, setPracticeOpen] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     if (isOpen) {
+      setRoundType(initialRoundType || 'MIXED');
       setSelectedResumeId(initialResumeId || '');
       apiFetch<Resume[]>('/resumes')
         .then((data) => {
@@ -70,7 +84,36 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
         })
         .catch(() => setResumes([]));
     }
-  }, [isOpen, initialResumeId]);
+  }, [isOpen, initialResumeId, initialRoundType]);
+
+  const handleEvaluateAnswer = async (qId: string, questionText: string, category: string) => {
+    const answerText = userAnswers[qId]?.trim();
+    if (!answerText) {
+      showToast('Please type your practice answer before evaluating', 'error');
+      return;
+    }
+
+    try {
+      setEvaluatingQuestionId(qId);
+      const res = await apiFetch<AiAnswerEvaluationResponse>('/ai/evaluate-answer', {
+        method: 'POST',
+        body: JSON.stringify({
+          question: questionText,
+          candidate_answer: answerText,
+          role_title: roleTitle,
+          company_name: companyName,
+          round_type: category || roundType,
+        }),
+      });
+
+      setEvaluations((prev) => ({ ...prev, [qId]: res }));
+      showToast(`Answer evaluated! Score: ${res.score}/100 (${res.verdict})`, 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to evaluate answer', 'error');
+    } finally {
+      setEvaluatingQuestionId(null);
+    }
+  };
 
   const handleGenerate = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -461,6 +504,157 @@ export const AiInterviewPrepModal: React.FC<AiInterviewPrepModalProps> = ({
                           <div className="text-slate-300 whitespace-pre-line leading-relaxed font-sans bg-slate-950/60 p-2.5 rounded border border-purple-500/10">
                             {q.sample_answer_framework}
                           </div>
+                        </div>
+
+                        {/* Interactive AI Answer Evaluation & STAR Coach */}
+                        <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 text-sky-400 font-semibold uppercase text-[11px] tracking-wider">
+                              <Brain className="h-3.5 w-3.5 text-sky-400" />
+                              Practice & AI STAR Evaluation
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setPracticeOpen((prev) => ({ ...prev, [qId]: !prev[qId] }))
+                              }
+                              className="text-[11px] text-sky-400 hover:text-sky-300 font-medium"
+                            >
+                              {practiceOpen[qId] ? 'Hide Practice Box' : 'Type Your Answer →'}
+                            </button>
+                          </div>
+
+                          {practiceOpen[qId] && (
+                            <div className="space-y-2.5 pt-1">
+                              <textarea
+                                value={userAnswers[qId] || ''}
+                                onChange={(e) =>
+                                  setUserAnswers((prev) => ({ ...prev, [qId]: e.target.value }))
+                                }
+                                placeholder="Type or paste your spoken practice answer here (e.g. When at my previous role, I noticed high API latency... I implemented indexing... which reduced latency by 40%)..."
+                                rows={4}
+                                className="w-full text-xs p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                              />
+
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-[11px] text-slate-400">
+                                  {(userAnswers[qId] || '').split(/\s+/).filter(Boolean).length} words
+                                </span>
+                                <Button
+                                  variant="primary"
+                                  size="sm"
+                                  onClick={() => handleEvaluateAnswer(qId, q.question, q.category)}
+                                  disabled={evaluatingQuestionId === qId || !(userAnswers[qId] || '').trim()}
+                                  className="text-xs py-1.5 px-3 bg-sky-600 hover:bg-sky-500 text-white shadow-sm flex items-center gap-1.5"
+                                >
+                                  {evaluatingQuestionId === qId ? (
+                                    <>
+                                      <RefreshCw className="h-3 w-3 animate-spin" />
+                                      <span>Grading STAR Rubric...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-3 w-3" />
+                                      <span>Grade Answer (STAR)</span>
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+
+                              {/* Evaluation Results Card */}
+                              {evaluations[qId] && (
+                                <div className="p-3 rounded-lg bg-slate-950 border border-sky-900/50 space-y-2.5 animate-in fade-in duration-200">
+                                  {/* Score Banner */}
+                                  <div className="flex items-center justify-between p-2 rounded bg-slate-900 border border-slate-800">
+                                    <div className="flex items-center gap-2">
+                                      <Award className="h-4 w-4 text-amber-400" />
+                                      <span className="font-bold text-xs text-white">
+                                        Overall Score: {evaluations[qId].score}/100
+                                      </span>
+                                    </div>
+                                    <span
+                                      className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                                        evaluations[qId].verdict === 'EXCELLENT'
+                                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                                          : evaluations[qId].verdict === 'SOLID'
+                                          ? 'bg-sky-950 text-sky-300 border border-sky-800'
+                                          : 'bg-amber-950 text-amber-300 border border-amber-800'
+                                      }`}
+                                    >
+                                      {evaluations[qId].verdict}
+                                    </span>
+                                  </div>
+
+                                  {/* STAR Breakdown */}
+                                  <div className="grid grid-cols-2 gap-1.5">
+                                    {Object.entries(evaluations[qId].star_breakdown).map(
+                                      ([key, item]) => (
+                                        <div
+                                          key={key}
+                                          className="p-1.5 rounded bg-slate-900/60 border border-slate-800 text-[11px]"
+                                        >
+                                          <div className="flex items-center justify-between font-semibold capitalize text-slate-300">
+                                            <span>{key}</span>
+                                            <span
+                                              className={
+                                                item.present ? 'text-emerald-400' : 'text-amber-400'
+                                              }
+                                            >
+                                              {item.present ? '✓ Included' : '⚠ Missing'}
+                                            </span>
+                                          </div>
+                                          <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
+                                            {item.comment}
+                                          </p>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+
+                                  {/* Strengths & Improvements */}
+                                  <div className="space-y-1.5 text-[11px]">
+                                    {evaluations[qId].strengths.length > 0 && (
+                                      <div className="text-emerald-400">
+                                        <strong>Strengths:</strong>{' '}
+                                        {evaluations[qId].strengths.join(' • ')}
+                                      </div>
+                                    )}
+                                    {evaluations[qId].improvements.length > 0 && (
+                                      <div className="text-amber-300">
+                                        <strong>To Improve:</strong>{' '}
+                                        {evaluations[qId].improvements.join(' • ')}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Model Improved Answer */}
+                                  {evaluations[qId].improved_answer && (
+                                    <div className="p-2 rounded bg-indigo-950/30 border border-indigo-900/40 text-[11px] text-slate-300 space-y-1">
+                                      <div className="flex items-center justify-between text-indigo-300 font-semibold">
+                                        <span>Model Revision (High Impact):</span>
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleCopyText(
+                                              evaluations[qId].improved_answer,
+                                              `eval-ans-${qId}`,
+                                              'Copied model answer!',
+                                            )
+                                          }
+                                          className="text-[10px] text-indigo-400 hover:text-indigo-200"
+                                        >
+                                          {copiedKey === `eval-ans-${qId}` ? 'Copied' : 'Copy'}
+                                        </button>
+                                      </div>
+                                      <p className="italic leading-relaxed">
+                                        "{evaluations[qId].improved_answer}"
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}

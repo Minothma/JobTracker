@@ -10,6 +10,7 @@ import { Modal } from '../../../../components/ui/Modal';
 import { Input, Select } from '../../../../components/ui/Input';
 import { AiEmailGeneratorModal } from '../../../../components/AiEmailGeneratorModal';
 import { AiInterviewPrepModal } from '../../../../components/AiInterviewPrepModal';
+import { AiCoverLetterModal } from '../../../../components/AiCoverLetterModal';
 import { apiFetch } from '../../../../lib/api-client';
 import { useToast } from '../../../../components/ui/Toast';
 import {
@@ -23,6 +24,7 @@ import {
   Star,
   MapPin,
   Briefcase,
+  FileText,
 } from 'lucide-react';
 import {
   isApplicationStarred,
@@ -47,6 +49,7 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAiEmailModalOpen, setIsAiEmailModalOpen] = useState(false);
   const [isAiInterviewPrepOpen, setIsAiInterviewPrepOpen] = useState(false);
+  const [isCoverLetterOpen, setIsCoverLetterOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Edit Form state
@@ -264,6 +267,17 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
           <Button
             variant="outline"
             size="sm"
+            onClick={() => setIsCoverLetterOpen(true)}
+            className="border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+            title="Generate AI Cover Letter or LinkedIn Recruiter Pitch"
+          >
+            <FileText className="w-3.5 h-3.5 text-indigo-500 mr-1" />
+            <span>Cover Letter</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setIsAiInterviewPrepOpen(true)}
             className="border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50"
             title="Practice tailored AI Interview Questions"
@@ -477,6 +491,17 @@ export const ApplicationHeader: React.FC<ApplicationHeaderProps> = ({
         roleTitle={application.role_title}
         jobDescription={application.job_description || undefined}
         initialResumeId={application.resume_id}
+      />
+
+      {/* AI Cover Letter Generator Modal */}
+      <AiCoverLetterModal
+        isOpen={isCoverLetterOpen}
+        onClose={() => setIsCoverLetterOpen(false)}
+        applicationId={application.id}
+        initialCompanyName={application.company_name}
+        initialRoleTitle={application.role_title}
+        initialJobDescription={application.job_description || undefined}
+        initialResumeId={application.resume_id || undefined}
       />
     </div>
   );

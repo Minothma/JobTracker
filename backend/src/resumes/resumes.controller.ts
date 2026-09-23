@@ -42,6 +42,19 @@ export class ResumesController {
     return this.resumesService.findOne(userId, id);
   }
 
+  @Get(':id/text')
+  @ApiOperation({ summary: 'Extract plain text from uploaded PDF/Doc resume version for AI ATS matching' })
+  @ApiParam({ name: 'id', description: 'Resume UUID' })
+  @ApiResponse({ status: 200, description: 'Extracted text and word count returned' })
+  @ApiResponse({ status: 404, description: 'Resume not found' })
+  async extractText(
+    @CurrentUser('id') userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.resumesService.extractResumeText(userId, id);
+  }
+
+
   @Post('upload-url')
   @ApiOperation({ summary: 'Generate AWS S3 presigned PUT URL for direct browser-to-S3 upload' })
   @ApiResponse({ status: 201, description: 'Presigned upload URL generated successfully' })

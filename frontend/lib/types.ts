@@ -223,3 +223,131 @@ export interface ScrapedJobData {
   source?: string;
   extracted_success: boolean;
 }
+
+export interface ParsedJobDetails {
+  company_name?: string;
+  role_title?: string;
+  work_mode?: WorkMode;
+  location?: string;
+  salary_min?: number;
+  salary_max?: number;
+  currency?: string;
+  contact_name?: string;
+  contact_email?: string;
+  key_skills: string[];
+  job_summary: string;
+  extracted_with: string;
+}
+
+export interface InterviewWithApplication extends Interview {
+  applications: {
+    id: string;
+    company_name: string;
+    role_title: string;
+    status: ApplicationStatus;
+    job_posting_url?: string;
+    contact_name?: string;
+    contact_email?: string;
+    location?: string;
+    work_mode?: string;
+    salary_min?: number;
+    salary_max?: number;
+    currency?: string;
+  };
+}
+
+export type CoverLetterTone = 'PROFESSIONAL' | 'ENTHUSIASTIC' | 'CONFIDENT' | 'CONCISE';
+export type CoverLetterFormat = 'FULL_COVER_LETTER' | 'LINKEDIN_INMAIL_PITCH';
+
+export interface AiCoverLetterRequest {
+  application_id?: string;
+  company_name: string;
+  role_title: string;
+  job_description?: string;
+  resume_id?: string;
+  custom_resume_text?: string;
+  tone?: CoverLetterTone;
+  format?: CoverLetterFormat;
+  key_achievements?: string;
+}
+
+export interface AiCoverLetterResponse {
+  title: string;
+  content: string;
+  format: CoverLetterFormat;
+  tone: CoverLetterTone;
+  company_name: string;
+  role_title: string;
+  word_count: number;
+  estimated_reading_minutes: number;
+  key_selling_points: string[];
+  generated_with: string;
+}
+
+export interface AiAnswerEvaluationRequest {
+  question: string;
+  candidate_answer: string;
+  role_title?: string;
+  company_name?: string;
+  round_type?: string;
+}
+
+export interface AiAnswerEvaluationResponse {
+  score: number;
+  verdict: 'EXCELLENT' | 'SOLID' | 'NEEDS_WORK';
+  star_breakdown: {
+    situation: { present: boolean; comment: string };
+    task: { present: boolean; comment: string };
+    action: { present: boolean; comment: string };
+    result: { present: boolean; comment: string };
+  };
+  strengths: string[];
+  improvements: string[];
+  improved_answer: string;
+  generated_with: string;
+}
+
+export interface AiNegotiateOfferRequest {
+  company_name: string;
+  role_title: string;
+  current_base: number;
+  current_bonus?: number;
+  current_equity?: number;
+  target_base?: number;
+  target_bonus?: number;
+  target_equity?: number;
+  currency?: string;
+  work_mode?: string;
+  leverage_points?: string;
+}
+
+export interface AiNegotiateOfferResponse {
+  strategy_summary: string;
+  recommended_counter: {
+    base_salary: number;
+    bonus: number;
+    equity: number;
+    total_comp: number;
+    increase_percentage: number;
+  };
+  talking_points: string[];
+  phone_script: string;
+  counter_email_draft: string;
+  risk_level: 'LOW' | 'MEDIUM' | 'HIGH';
+  key_leverage_summary: string[];
+  generated_with: string;
+}
+
+export interface WeeklyGoalConfig {
+  weeklyTarget: number;
+}
+
+export interface WeeklyGoalProgress {
+  weeklyTarget: number;
+  appliedThisWeek: number;
+  progressPercent: number;
+  activeStreakDays: number;
+  isGoalAchieved: boolean;
+}
+
+

@@ -1,10 +1,30 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { ResumesService } from '../resumes/resumes.service';
 import { MatchResumeDto } from './dto/match-resume.dto';
 import { GenerateEmailDto, EmailType, EmailTone } from './dto/generate-email.dto';
 import { InterviewPrepDto, InterviewRoundType } from './dto/interview-prep.dto';
 import { ScrapeJobUrlDto } from './dto/scrape-job-url.dto';
+import { GenerateCoverLetterDto, CoverLetterTone, CoverLetterFormat } from './dto/cover-letter.dto';
+import { EvaluateAnswerDto } from './dto/evaluate-answer.dto';
+import { NegotiateOfferDto } from './dto/negotiate-offer.dto';
+import { ParseJobTextDto } from './dto/parse-job-text.dto';
+
+export interface ParsedJobTextResult {
+  company_name?: string;
+  role_title?: string;
+  work_mode?: 'REMOTE' | 'HYBRID' | 'ONSITE';
+  location?: string;
+  salary_min?: number;
+  salary_max?: number;
+  currency?: string;
+  contact_name?: string;
+  contact_email?: string;
+  key_skills: string[];
+  job_summary: string;
+  extracted_with: string;
+}
 
 export interface AiMatchResult {
   score: number;
@@ -43,6 +63,51 @@ export interface AiInterviewPrepResult {
   generated_with: string;
 }
 
+export interface AiCoverLetterResult {
+  title: string;
+  content: string;
+  format: CoverLetterFormat;
+  tone: CoverLetterTone;
+  company_name: string;
+  role_title: string;
+  word_count: number;
+  estimated_reading_minutes: number;
+  key_selling_points: string[];
+  generated_with: string;
+}
+
+export interface AiAnswerEvaluationResult {
+  score: number;
+  verdict: 'EXCELLENT' | 'SOLID' | 'NEEDS_WORK';
+  star_breakdown: {
+    situation: { present: boolean; comment: string };
+    task: { present: boolean; comment: string };
+    action: { present: boolean; comment: string };
+    result: { present: boolean; comment: string };
+  };
+  strengths: string[];
+  improvements: string[];
+  improved_answer: string;
+  generated_with: string;
+}
+
+export interface AiOfferNegotiationResult {
+  strategy_summary: string;
+  recommended_counter: {
+    base_salary: number;
+    bonus: number;
+    equity: number;
+    total_comp: number;
+    increase_percentage: number;
+  };
+  talking_points: string[];
+  phone_script: string;
+  counter_email_draft: string;
+  risk_level: 'LOW' | 'MEDIUM' | 'HIGH';
+  key_leverage_summary: string[];
+  generated_with: string;
+}
+
 export interface ScrapedJobData {
   url: string;
   role_title?: string;
@@ -76,6 +141,7 @@ export class AiService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
+    @Optional() private readonly resumesService?: ResumesService,
   ) {
     this.geminiApiKey = this.configService.get<string>('GEMINI_API_KEY') || process.env.GEMINI_API_KEY;
     this.logger.log(`AiService initialized (Gemini API Configured: ${!!this.geminiApiKey})`);
@@ -94,9 +160,19 @@ export class AiService {
       }
       resumeLabel = resume.version_label;
       if (!resumeContent) {
-        resumeContent = `Resume Version: ${resume.version_label} (${resume.original_filename})`;
+        try {
+          if (this.resumesService) {
+            const extracted = await this.resumesService.extractResumeText(userId, dto.resume_id);
+            if (extracted?.extracted_text) {
+              resumeContent = extracted.extracted_text;
+            }
+          }
+        } catch {
+          resumeContent = `Resume Version: ${resume.version_label} (${resume.original_filename})`;
+        }
       }
     }
+
 
     if (!resumeContent.trim()) {
       resumeContent = `${dto.role_title || 'Software Engineer'} with experience in Full-Stack TypeScript, React, Next.js, Node.js, NestJS, PostgreSQL, Prisma, Docker, and AWS.`;
@@ -226,6 +302,176 @@ export class AiService {
       resumeText,
       roundType,
       dto.focus_areas,
+    );
+  }
+
+  async generateCoverLetter(userId: string, dto: GenerateCoverLetterDto): Promise<AiCoverLetterResult> {
+    let companyName = dto.company_name;
+    let roleTitle = dto.role_title;
+    let jobDescription = dto.job_description || '';
+    let resumeText = dto.custom_resume_text || '';
+    const tone = dto.tone || CoverLetterTone.PROFESSIONAL;
+    const format = dto.format || CoverLetterFormat.FULL_COVER_LETTER;
+
+    if (dto.application_id) {
+      const app = await this.prisma.applications.findFirst({
+        where: { id: dto.application_id, user_id: userId },
+        include: { resumes: true },
+      });
+      if (app) {
+        companyName = companyName || app.company_name;
+        roleTitle = roleTitle || app.role_title;
+        jobDescription = jobDescription || app.job_description || '';
+        if (app.resume_id && !resumeText && this.resumesService) {
+          try {
+            const extracted = await this.resumesService.extractResumeText(userId, app.resume_id);
+            if (extracted?.extracted_text) {
+              resumeText = extracted.extracted_text;
+            }
+          } catch {
+            // fallback
+          }
+        }
+      }
+    }
+
+    if (dto.resume_id && !resumeText && this.resumesService) {
+      try {
+        const extracted = await this.resumesService.extractResumeText(userId, dto.resume_id);
+        if (extracted?.extracted_text) {
+          resumeText = extracted.extracted_text;
+        }
+      } catch {
+        // fallback
+      }
+    }
+
+    if (!resumeText.trim()) {
+      resumeText = `Experienced ${roleTitle || 'Software Engineer'} proficient in full-stack architecture, TypeScript, React, Next.js, Node.js, NestJS, relational SQL databases, AWS cloud deployments, and CI/CD pipelines. Proven track record of shipping scalable, test-driven applications with high availability.`;
+    }
+
+    if (this.geminiApiKey) {
+      try {
+        const geminiResult = await this.generateCoverLetterWithGemini(
+          roleTitle,
+          companyName,
+          jobDescription,
+          resumeText,
+          tone,
+          format,
+          dto.key_achievements,
+        );
+        if (geminiResult) {
+          return {
+            ...geminiResult,
+            company_name: companyName,
+            role_title: roleTitle,
+            tone,
+            format,
+            generated_with: 'Google Gemini 1.5 Flash (AI Engine)',
+          };
+        }
+      } catch (err: any) {
+        this.logger.warn(`Gemini Cover Letter Generation failed (${err.message}). Falling back to Heuristic Engine.`);
+      }
+    }
+
+    return this.generateCoverLetterWithFallback(
+      roleTitle,
+      companyName,
+      jobDescription,
+      resumeText,
+      tone,
+      format,
+      dto.key_achievements,
+    );
+  }
+
+  async evaluateInterviewAnswer(userId: string, dto: EvaluateAnswerDto): Promise<AiAnswerEvaluationResult> {
+    const question = dto.question.trim();
+    const candidateAnswer = dto.candidate_answer.trim();
+    const roleTitle = dto.role_title || 'Software Engineer';
+    const companyName = dto.company_name || 'Target Company';
+    const roundType = dto.round_type || 'TECHNICAL';
+
+    if (this.geminiApiKey) {
+      try {
+        const geminiResult = await this.evaluateAnswerWithGemini(
+          question,
+          candidateAnswer,
+          roleTitle,
+          companyName,
+          roundType,
+        );
+        if (geminiResult) {
+          return {
+            ...geminiResult,
+            generated_with: 'Google Gemini 1.5 Flash (AI Evaluation Model)',
+          };
+        }
+      } catch (err: any) {
+        this.logger.warn(`Gemini Interview Evaluation failed (${err.message}). Falling back to Heuristic Rubric.`);
+      }
+    }
+
+    return this.evaluateAnswerWithFallback(
+      question,
+      candidateAnswer,
+      roleTitle,
+      companyName,
+      roundType,
+    );
+  }
+
+  async negotiateOfferStrategy(userId: string, dto: NegotiateOfferDto): Promise<AiOfferNegotiationResult> {
+    const companyName = dto.company_name;
+    const roleTitle = dto.role_title;
+    const currentBase = Number(dto.current_base) || 0;
+    const currentBonus = Number(dto.current_bonus) || 0;
+    const currentEquity = Number(dto.current_equity) || 0;
+
+    let targetBase = dto.target_base ? Number(dto.target_base) : Math.round(currentBase * 1.12);
+    let targetBonus = dto.target_bonus ? Number(dto.target_bonus) : Math.round(currentBonus * 1.1);
+    let targetEquity = dto.target_equity ? Number(dto.target_equity) : Math.round(currentEquity * 1.15);
+
+    if (this.geminiApiKey) {
+      try {
+        const geminiResult = await this.negotiateOfferWithGemini(
+          companyName,
+          roleTitle,
+          currentBase,
+          currentBonus,
+          currentEquity,
+          targetBase,
+          targetBonus,
+          targetEquity,
+          dto.currency || 'USD',
+          dto.work_mode || 'REMOTE',
+          dto.leverage_points,
+        );
+        if (geminiResult) {
+          return {
+            ...geminiResult,
+            generated_with: 'Google Gemini 1.5 Flash (Negotiation Advisor)',
+          };
+        }
+      } catch (err: any) {
+        this.logger.warn(`Gemini Offer Negotiation failed (${err.message}). Falling back to Heuristic Advisor.`);
+      }
+    }
+
+    return this.negotiateOfferWithFallback(
+      companyName,
+      roleTitle,
+      currentBase,
+      currentBonus,
+      currentEquity,
+      targetBase,
+      targetBonus,
+      targetEquity,
+      dto.currency || 'USD',
+      dto.work_mode || 'REMOTE',
+      dto.leverage_points,
     );
   }
 
@@ -861,6 +1107,584 @@ Respond ONLY with a valid JSON object matching this exact TypeScript structure:
       interview_focus_areas: interviewFocusAreas,
       summary: `Your resume (${resumeLabel || 'Candidate'}) shows a ${calculatedScore}% compatibility with the ${roleTitle || 'target'} role. Adding missing keyword competencies will maximize ATS passing rates.`,
       analyzed_with: 'Smart Semantic Engine (Local Fallback)',
+    };
+  }
+
+  private async generateCoverLetterWithGemini(
+    roleTitle: string,
+    companyName: string,
+    jobDescription: string,
+    resumeText: string,
+    tone: CoverLetterTone,
+    format: CoverLetterFormat,
+    keyAchievements?: string,
+  ): Promise<Omit<AiCoverLetterResult, 'company_name' | 'role_title' | 'tone' | 'format' | 'generated_with'> | null> {
+    const isPitch = format === CoverLetterFormat.LINKEDIN_INMAIL_PITCH;
+    const prompt = `
+You are an expert executive career coach and technical hiring consultant.
+Write a compelling, tailored ${isPitch ? 'LinkedIn Recruiter InMail outreach pitch (under 160 words)' : 'job application Cover Letter (3-4 concise markdown paragraphs)'}.
+
+TARGET ROLE: ${roleTitle}
+COMPANY: ${companyName}
+DESIRED TONE: ${tone}
+${keyAchievements ? `CANDIDATE KEY ACHIEVEMENTS TO EMPHASIZE:\n${keyAchievements}\n` : ''}
+${jobDescription ? `JOB DESCRIPTION EXCERPT:\n${jobDescription.slice(0, 1500)}\n` : ''}
+CANDIDATE BACKGROUND / RESUME EXCERPT:
+${resumeText.slice(0, 2000)}
+
+REQUIREMENTS:
+1. Make it authentic, persuasive, and directly address the company's domain or technical requirements.
+2. Emphasize measurable achievements and architectural ownership.
+3. Output STRICTLY a valid JSON object with NO markdown ticks or backticks outside of JSON.
+Schema:
+{
+  "title": "${isPitch ? `InMail Outreach: ${roleTitle} at ${companyName}` : `Cover Letter: ${roleTitle} - ${companyName}`}",
+  "content": "Full markdown text of the letter or InMail pitch",
+  "word_count": 280,
+  "estimated_reading_minutes": 1.5,
+  "key_selling_points": ["Point 1", "Point 2", "Point 3"]
+}
+`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.geminiApiKey}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.7,
+        },
+      }),
+    });
+
+    if (!response.ok) return null;
+    const data: any = await response.json();
+    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!candidateText) return null;
+
+    const parsed = JSON.parse(candidateText);
+    const content = parsed.content || '';
+    const wordCount = content.split(/\s+/).filter(Boolean).length;
+    return {
+      title: parsed.title || `Cover Letter: ${roleTitle} - ${companyName}`,
+      content,
+      word_count: wordCount,
+      estimated_reading_minutes: Math.max(1, Math.round(wordCount / 200 * 10) / 10),
+      key_selling_points: Array.isArray(parsed.key_selling_points) ? parsed.key_selling_points : [],
+    };
+  }
+
+  private generateCoverLetterWithFallback(
+    roleTitle: string,
+    companyName: string,
+    jobDescription: string,
+    resumeText: string,
+    tone: CoverLetterTone,
+    format: CoverLetterFormat,
+    keyAchievements?: string,
+  ): AiCoverLetterResult {
+    const isPitch = format === CoverLetterFormat.LINKEDIN_INMAIL_PITCH;
+    const jdLower = jobDescription.toLowerCase();
+    const matchedSkills = this.techSkillsDictionary.filter((s) => jdLower.includes(s.toLowerCase()));
+    const primarySkill = matchedSkills[0] || 'TypeScript & Node.js';
+    const secondarySkill = matchedSkills[1] || 'Modern Frontend Architecture & Cloud Services';
+
+    let content = '';
+    const title = isPitch
+      ? `InMail Pitch: ${roleTitle} at ${companyName}`
+      : `Application for ${roleTitle} at ${companyName}`;
+
+    if (isPitch) {
+      if (tone === CoverLetterTone.ENTHUSIASTIC) {
+        content = `Hi [Recruiter / Hiring Team],\n\nI’ve been closely following ${companyName}’s engineering growth and was thrilled to see the **${roleTitle}** opening! With deep experience in **${primarySkill}** and **${secondarySkill}**, I specialize in shipping high-throughput systems that scale reliably.\n\n${keyAchievements ? `Recently, I ${keyAchievements}.\n\n` : ''}I’d love to connect for 10 minutes to discuss how my technical background aligns with ${companyName}'s roadmap this quarter. Are you free for a brief chat this week?\n\nBest regards,\n[Your Name]`;
+      } else if (tone === CoverLetterTone.CONFIDENT) {
+        content = `Hi [Hiring Manager],\n\nI am reaching out regarding the **${roleTitle}** position at ${companyName}. Over the past few years, I have architected high-performance applications leveraging **${primarySkill}** and **${secondarySkill}**, driving tangible reliability and product velocity.\n\n${keyAchievements ? `Key highlight: ${keyAchievements}.\n\n` : ''}I believe I can bring immediate value to your engineering sprints. When would be a good time for a quick 10-minute introductory call?\n\nBest,\n[Your Name]`;
+      } else {
+        content = `Hi [Recruiter Name],\n\nI hope you're having a great week. I’m writing to express my strong interest in the **${roleTitle}** role at **${companyName}**.\n\nMy background is centered around building resilient full-stack systems with **${primarySkill}** and **${secondarySkill}**. ${keyAchievements ? `A key achievement of mine: ${keyAchievements}.` : 'I have a proven record of leading technical deliveries from concept to production.'}\n\nI would welcome the opportunity to connect and discuss how my skills match your team’s current priorities. Thank you for your time!\n\nSincerely,\n[Your Name]`;
+      }
+    } else {
+      // Full Cover Letter
+      content = `Dear Hiring Team at ${companyName},\n\nI am writing to express my enthusiastic interest in the **${roleTitle}** role at **${companyName}**. With hands-on experience designing, developing, and deploying resilient software applications utilizing **${primarySkill}** and **${secondarySkill}**, I am eager to contribute to your engineering team's mission.\n\nThroughout my work, I have focused on writing clean, test-driven, and highly maintainable code. ${keyAchievements ? `Specifically, ${keyAchievements}. ` : ''}Whether designing scalable microservices or optimizing responsive user interfaces, I prioritize product reliability, developer ergonomics, and user satisfaction.\n\nWhat excites me most about ${companyName} is your commitment to technical innovation and engineering excellence. I am confident that my background in distributed systems, asynchronous pipelines, and collaborative problem-solving makes me a strong fit for this team.\n\nThank you for considering my application. I welcome the opportunity to discuss how my technical experience and enthusiasm can support ${companyName}'s upcoming goals.\n\nWarm regards,\n\n**[Your Name]**\n[LinkedIn Profile / Portfolio]`;
+    }
+
+    const wordCount = content.split(/\s+/).filter(Boolean).length;
+
+    return {
+      title,
+      content,
+      format,
+      tone,
+      company_name: companyName,
+      role_title: roleTitle,
+      word_count: wordCount,
+      estimated_reading_minutes: Math.max(1, Math.round(wordCount / 200 * 10) / 10),
+      key_selling_points: [
+        `Targeted alignment with ${primarySkill} & ${secondarySkill}`,
+        `Clear presentation of engineering ownership & measurable impact`,
+        `Polite, conversion-focused closing call-to-action for interviews`,
+      ],
+      generated_with: 'Smart Pitch Synthesizer (Local Fallback)',
+    };
+  }
+
+  private async evaluateAnswerWithGemini(
+    question: string,
+    candidateAnswer: string,
+    roleTitle: string,
+    companyName: string,
+    roundType: string,
+  ): Promise<Omit<AiAnswerEvaluationResult, 'generated_with'> | null> {
+    const prompt = `
+You are a senior hiring bar raiser and technical interview coach at a top-tier software company.
+Evaluate the candidate's interview practice answer according to the STAR method (Situation, Task, Action, Result).
+
+QUESTION: "${question}"
+TARGET ROLE: ${roleTitle} at ${companyName}
+INTERVIEW ROUND: ${roundType}
+CANDIDATE ANSWER:
+"${candidateAnswer}"
+
+CRITERIA:
+- Score from 0 to 100 based on clarity, specificity, concrete metrics, technical depth, and STAR structure.
+- Check each STAR component (Situation, Task, Action, Result) with boolean and a 1-sentence assessment.
+- Provide 2-3 specific strengths.
+- Provide 2-3 actionable areas to improve.
+- Write a polished, model 1-paragraph revision of their answer demonstrating how to phrase it with maximum impact.
+
+Output STRICTLY valid JSON with NO markdown backticks:
+{
+  "score": 85,
+  "verdict": "EXCELLENT" | "SOLID" | "NEEDS_WORK",
+  "star_breakdown": {
+    "situation": { "present": true, "comment": "Clear context given about the legacy system." },
+    "task": { "present": true, "comment": "Clearly identified the latency bottleneck as the core task." },
+    "action": { "present": true, "comment": "Described indexing and cache invalidation steps in detail." },
+    "result": { "present": true, "comment": "Cited a 45% reduction in API response times." }
+  },
+  "strengths": ["Clear technical terminology", "Good structure"],
+  "improvements": ["Elaborate on how trade-offs were evaluated", "Mention team collaboration"],
+  "improved_answer": "Model refined answer..."
+}
+`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.geminiApiKey}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.3,
+        },
+      }),
+    });
+
+    if (!response.ok) return null;
+    const data: any = await response.json();
+    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!candidateText) return null;
+
+    return JSON.parse(candidateText);
+  }
+
+  private evaluateAnswerWithFallback(
+    question: string,
+    candidateAnswer: string,
+    roleTitle: string,
+    companyName: string,
+    roundType: string,
+  ): AiAnswerEvaluationResult {
+    const words = candidateAnswer.split(/\s+/).filter(Boolean).length;
+    const lower = candidateAnswer.toLowerCase();
+
+    // Check STAR cues
+    const hasSituation = lower.includes('when') || lower.includes('at') || lower.includes('project') || lower.includes('company') || lower.includes('team');
+    const hasTask = lower.includes('needed to') || lower.includes('task') || lower.includes('goal') || lower.includes('responsible') || lower.includes('problem');
+    const hasAction = lower.includes('i built') || lower.includes('i implemented') || lower.includes('i designed') || lower.includes('i resolved') || lower.includes('i led') || lower.includes('i created') || lower.includes('i optimized');
+    const hasResult = lower.includes('result') || lower.includes('reduced') || lower.includes('improved') || lower.includes('%') || lower.includes('increased') || lower.includes('delivered') || lower.includes('achieved');
+
+    let baseScore = 65;
+    if (words >= 40 && words <= 250) baseScore += 10;
+    if (hasSituation) baseScore += 5;
+    if (hasTask) baseScore += 5;
+    if (hasAction) baseScore += 10;
+    if (hasResult) baseScore += 10;
+    if (baseScore > 95) baseScore = 95;
+
+    let verdict: 'EXCELLENT' | 'SOLID' | 'NEEDS_WORK' = 'SOLID';
+    if (baseScore >= 85) verdict = 'EXCELLENT';
+    else if (baseScore < 70) verdict = 'NEEDS_WORK';
+
+    const strengths: string[] = [];
+    const improvements: string[] = [];
+
+    if (hasAction) {
+      strengths.push('Demonstrates direct personal ownership with clear action verbs.');
+    } else {
+      improvements.push('Clarify your specific individual contribution ("I implemented...") rather than vague team efforts.');
+    }
+
+    if (hasResult) {
+      strengths.push('Highlights tangible outcomes and business or performance impact.');
+    } else {
+      improvements.push('Quantify the final result with concrete metrics (e.g. % speedup, error rate decrease, or stakeholder satisfaction).');
+    }
+
+    if (words < 40) {
+      improvements.push('Your answer is quite brief. Add more technical context and step-by-step reasoning.');
+    } else if (words > 250) {
+      improvements.push('Keep the answer concise (approx. 90-180 seconds spoken length) to maintain interviewer engagement.');
+    } else {
+      strengths.push('Well-balanced answer length suitable for a 2-minute response window.');
+    }
+
+    const improvedAnswer = `In a previous project as a ${roleTitle}, we faced a key challenge where our team needed to ensure high reliability and low latency for user-facing APIs. I took ownership by architecting a structured solution using modern asynchronous patterns, adding comprehensive integration tests, and optimizing database queries. As a result, we successfully reduced p99 latency by 35% and delivered the feature on schedule with zero production incidents.`;
+
+    return {
+      score: baseScore,
+      verdict,
+      star_breakdown: {
+        situation: {
+          present: hasSituation,
+          comment: hasSituation ? 'Provides appropriate background context.' : 'Missing clear framing of the initial situation/context.',
+        },
+        task: {
+          present: hasTask,
+          comment: hasTask ? 'Clearly outlines the core objective or problem.' : 'Could more explicitly define what your exact goal was.',
+        },
+        action: {
+          present: hasAction,
+          comment: hasAction ? 'Strong emphasis on technical execution and decisions.' : 'Add more active verbs showing your exact technical actions.',
+        },
+        result: {
+          present: hasResult,
+          comment: hasResult ? 'Concludes with measurable impact and learnings.' : 'Conclude with quantifiable impact or business results.',
+        },
+      },
+      strengths: strengths.length > 0 ? strengths : ['Good initial foundation', 'Clear focus on topic'],
+      improvements: improvements.length > 0 ? improvements : ['Maintain confidence and practice speaking rhythm.'],
+      improved_answer: improvedAnswer,
+      generated_with: 'STAR Heuristic Coach (Local Fallback)',
+    };
+  }
+
+  private async negotiateOfferWithGemini(
+    companyName: string,
+    roleTitle: string,
+    currentBase: number,
+    currentBonus: number,
+    currentEquity: number,
+    targetBase: number,
+    targetBonus: number,
+    targetEquity: number,
+    currency: string,
+    workMode: string,
+    leveragePoints?: string,
+  ): Promise<Omit<AiOfferNegotiationResult, 'generated_with'> | null> {
+    const currentTotal = currentBase + currentBonus + currentEquity;
+    const targetTotal = targetBase + targetBonus + targetEquity;
+    const increasePercent = currentTotal > 0 ? Math.round(((targetTotal - currentTotal) / currentTotal) * 100) : 12;
+
+    const prompt = `
+You are a world-class executive compensation negotiator and career advisor.
+Create a strategic counter-offer plan and diplomatic email draft for a candidate negotiating an offer.
+
+ROLE: ${roleTitle}
+COMPANY: ${companyName}
+CURRENT OFFER: ${currency} ${currentBase.toLocaleString()} Base, ${currency} ${currentBonus.toLocaleString()} Bonus, ${currency} ${currentEquity.toLocaleString()} Equity (Total: ${currency} ${currentTotal.toLocaleString()})
+TARGET COUNTER: ${currency} ${targetBase.toLocaleString()} Base, ${currency} ${targetBonus.toLocaleString()} Bonus, ${currency} ${targetEquity.toLocaleString()} Equity (Total: ${currency} ${targetTotal.toLocaleString()}, +${increasePercent}%)
+WORK MODE: ${workMode}
+${leveragePoints ? `CANDIDATE LEVERAGE POINTS:\n${leveragePoints}` : ''}
+
+REQUIREMENTS:
+1. Provide a concise strategic summary of how to frame the counter.
+2. Outline 3 high-impact talking points focusing on market value and candidate enthusiasm.
+3. Write a verbal phone call script (under 120 words) for when discussing with the recruiter.
+4. Write a formal, enthusiastic counter-offer email draft that politely proposes the revised numbers without issuing an ultimatum.
+5. Determine risk level (LOW, MEDIUM, HIGH) based on the ask.
+
+Output STRICTLY valid JSON with NO markdown backticks:
+{
+  "strategy_summary": "Summary of negotiation leverage and angle",
+  "recommended_counter": {
+    "base_salary": ${targetBase},
+    "bonus": ${targetBonus},
+    "equity": ${targetEquity},
+    "total_comp": ${targetTotal},
+    "increase_percentage": ${increasePercent}
+  },
+  "talking_points": ["Point 1", "Point 2", "Point 3"],
+  "phone_script": "Verbal script text...",
+  "counter_email_draft": "Email body text...",
+  "risk_level": "LOW",
+  "key_leverage_summary": ["Leverage 1", "Leverage 2"]
+}
+`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.geminiApiKey}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.4,
+        },
+      }),
+    });
+
+    if (!response.ok) return null;
+    const data: any = await response.json();
+    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!candidateText) return null;
+
+    return JSON.parse(candidateText);
+  }
+
+  private negotiateOfferWithFallback(
+    companyName: string,
+    roleTitle: string,
+    currentBase: number,
+    currentBonus: number,
+    currentEquity: number,
+    targetBase: number,
+    targetBonus: number,
+    targetEquity: number,
+    currency: string,
+    workMode: string,
+    leveragePoints?: string,
+  ): AiOfferNegotiationResult {
+    const currentTotal = currentBase + currentBonus + currentEquity;
+    const targetTotal = targetBase + targetBonus + targetEquity;
+    const increasePercent = currentTotal > 0 ? Math.round(((targetTotal - currentTotal) / currentTotal) * 100) : 10;
+
+    let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' = 'LOW';
+    if (increasePercent > 20) riskLevel = 'HIGH';
+    else if (increasePercent > 12) riskLevel = 'MEDIUM';
+
+    const talkingPoints = [
+      `Enthusiastic Alignment: Reiterate that ${companyName} is your top choice and you are thrilled by the team's engineering roadmap.`,
+      `Market & Scope Anchor: Position your request for ${currency} ${targetBase.toLocaleString()} base around your proven ability to deliver immediate value in the ${roleTitle} role.`,
+      `Flexibility & Collaboration: Show willingness to explore a mix of base salary, sign-on bonus, or equity refreshers to reach target alignment.`,
+    ];
+
+    const phoneScript = `"Thank you so much for extending the offer to join ${companyName} as a ${roleTitle}. I'm genuinely excited about the team and the impact we can make. After reviewing the complete compensation details and considering market benchmarks for this level of technical responsibility, I was hoping we could discuss bringing the base salary closer to ${currency} ${targetBase.toLocaleString()} (or exploring an adjusted sign-on / equity package). If we can bridge this gap, I would be thrilled to sign and accept right away."`;
+
+    const counterEmailDraft = `Subject: ${roleTitle} Offer - Compensation Discussion & Next Steps - [Your Name]
+
+Dear [Recruiter / Hiring Manager Name],
+
+Thank you so much for putting together this offer. I am genuinely thrilled about the opportunity to join ${companyName} as a ${roleTitle} and contribute to your team's upcoming initiatives.
+
+After reviewing the package in detail and reflecting on market standards for this scope of ownership, I was hoping we could explore an adjustment to the overall compensation. Specifically, I would love to see if we can bring the base salary to **${currency} ${targetBase.toLocaleString()}**${targetBonus > currentBonus ? ` with a performance target of **${currency} ${targetBonus.toLocaleString()}**` : ''}${targetEquity > currentEquity ? ` and equity valued at **${currency} ${targetEquity.toLocaleString()}**` : ''}.
+
+${leveragePoints ? `For context, ${leveragePoints}.\n\n` : ''}I am very eager to make this work, and with these adjustments in place, I would be ready to accept immediately and begin onboarding.
+
+Could we schedule a quick 10-minute call this week to discuss? Thank you again for your continued support throughout the interview process.
+
+Warm regards,
+
+**[Your Name]**
+[Phone Number] | [LinkedIn Profile]`;
+
+    return {
+      strategy_summary: `Your counter represents a ${increasePercent}% increase over the initial offer. By anchoring on specific value metrics and stating that you are ready to sign immediately upon adjustment, you maximize recruiter willingness to advocate for compensation committee approval.`,
+      recommended_counter: {
+        base_salary: targetBase,
+        bonus: targetBonus,
+        equity: targetEquity,
+        total_comp: targetTotal,
+        increase_percentage: increasePercent,
+      },
+      talking_points: talkingPoints,
+      phone_script: phoneScript,
+      counter_email_draft: counterEmailDraft,
+      risk_level: riskLevel,
+      key_leverage_summary: [
+        `Clear sign-now commitment if target is met`,
+        `Balanced distribution between base and variable compensation`,
+        `Professional, non-adversarial framing that preserves goodwill`,
+      ],
+      generated_with: 'Negotiation Strategy Engine (Local Heuristic)',
+    };
+  }
+
+  async parseJobText(
+    userId: string,
+    dto: ParseJobTextDto,
+  ): Promise<ParsedJobTextResult> {
+    const rawText = dto.text?.trim();
+    if (!rawText || rawText.length < 15) {
+      throw new BadRequestException('Job posting text must be at least 15 characters long');
+    }
+
+    if (this.geminiApiKey) {
+      try {
+        const geminiResult = await this.parseJobTextWithGemini(rawText);
+        if (geminiResult) {
+          return {
+            ...geminiResult,
+            extracted_with: 'Google Gemini AI',
+          };
+        }
+      } catch (err: any) {
+        this.logger.warn(`Gemini Job Parsing failed, falling back to heuristic parser: ${err.message}`);
+      }
+    }
+
+    return this.parseJobTextWithFallback(rawText);
+  }
+
+  private async parseJobTextWithGemini(rawText: string): Promise<ParsedJobTextResult | null> {
+    const prompt = `You are an expert AI recruiting assistant and job description parser.
+Extract structured job details from the following raw job posting text.
+
+Job Posting Text:
+"""
+${rawText}
+"""
+
+Return ONLY a valid, parseable JSON object matching this exact TypeScript interface without any markdown backticks or commentary:
+{
+  "company_name": string or null,
+  "role_title": string or null,
+  "work_mode": "REMOTE" | "HYBRID" | "ONSITE",
+  "location": string or null,
+  "salary_min": number or null,
+  "salary_max": number or null,
+  "currency": string or null,
+  "contact_name": string or null,
+  "contact_email": string or null,
+  "key_skills": string[],
+  "job_summary": string
+}`;
+
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.geminiApiKey}`;
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.1,
+          responseMimeType: 'application/json',
+        },
+      }),
+    });
+
+    if (!response.ok) return null;
+    const data: any = await response.json();
+    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!candidateText) return null;
+
+    return JSON.parse(candidateText);
+  }
+
+  private parseJobTextWithFallback(rawText: string): ParsedJobTextResult {
+    // 1. Email extraction
+    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i;
+    const emailMatch = rawText.match(emailRegex);
+    const contactEmail = emailMatch ? emailMatch[1] : undefined;
+
+    // 2. Work mode extraction
+    let workMode: 'REMOTE' | 'HYBRID' | 'ONSITE' = 'REMOTE';
+    const lowerText = rawText.toLowerCase();
+    if (lowerText.includes('hybrid')) {
+      workMode = 'HYBRID';
+    } else if (lowerText.includes('on-site') || lowerText.includes('onsite') || lowerText.includes('in-office') || lowerText.includes('in office')) {
+      workMode = 'ONSITE';
+    } else if (lowerText.includes('remote') || lowerText.includes('wfh') || lowerText.includes('work from home')) {
+      workMode = 'REMOTE';
+    }
+
+    // 3. Currency and Salary extraction
+    let currency = 'USD';
+    if (lowerText.includes('lkr') || lowerText.includes('rs.') || lowerText.includes('rupees')) currency = 'LKR';
+    else if (lowerText.includes('eur') || lowerText.includes('€')) currency = 'EUR';
+    else if (lowerText.includes('gbp') || lowerText.includes('£')) currency = 'GBP';
+    else if (lowerText.includes('cad') || lowerText.includes('c$')) currency = 'CAD';
+    else if (lowerText.includes('aud') || lowerText.includes('a$')) currency = 'AUD';
+    else if (lowerText.includes('inr') || lowerText.includes('₹')) currency = 'INR';
+
+    let salaryMin: number | undefined;
+    let salaryMax: number | undefined;
+
+    // Regex for ranges like $120,000 - $160,000 or $120k - $160k or 120,000 to 160,000
+    const salaryRangeRegex = /(?:[\$€£₹]\s*)?(\d{2,3}(?:,\d{3})*(?:\.\d+)?|\d{2,3})k?\s*(?:-|–|to)\s*(?:[\$€£₹]\s*)?(\d{2,3}(?:,\d{3})*(?:\.\d+)?|\d{2,3})k?/i;
+    const rangeMatch = rawText.match(salaryRangeRegex);
+    if (rangeMatch) {
+      let num1 = parseFloat(rangeMatch[1].replace(/,/g, ''));
+      let num2 = parseFloat(rangeMatch[2].replace(/,/g, ''));
+      if (num1 < 1000) num1 *= 1000;
+      if (num2 < 1000) num2 *= 1000;
+      salaryMin = Math.min(num1, num2);
+      salaryMax = Math.max(num1, num2);
+    } else {
+      // Single salary like $140,000 / year or $150k
+      const singleSalaryRegex = /(?:[\$€£₹]\s*)(\d{2,3}(?:,\d{3})*(?:\.\d+)?|\d{2,3})k?/i;
+      const singleMatch = rawText.match(singleSalaryRegex);
+      if (singleMatch) {
+        let num = parseFloat(singleMatch[1].replace(/,/g, ''));
+        if (num < 1000) num *= 1000;
+        salaryMin = num;
+        salaryMax = Math.round(num * 1.15);
+      }
+    }
+
+    // 4. Role Title & Company extraction heuristic
+    const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+    let roleTitle = 'Software Engineer';
+    let companyName = 'Hiring Company';
+    let location: string | undefined;
+
+    if (lines.length > 0) {
+      const firstLine = lines[0];
+      const atMatch = firstLine.match(/^(.*?)\s+(?:at|@|-|–|\|)\s+(.*?)$/i);
+      if (atMatch) {
+        roleTitle = atMatch[1].trim();
+        companyName = atMatch[2].trim();
+      } else if (lines.length >= 2) {
+        roleTitle = lines[0];
+        companyName = lines[1];
+      } else {
+        roleTitle = firstLine;
+      }
+    }
+
+    // Clean up role and company
+    roleTitle = roleTitle.slice(0, 100).replace(/[^\w\s-()&/,.]/g, '').trim() || 'Software Engineer';
+    companyName = companyName.slice(0, 80).replace(/[^\w\s-()&/,.']/g, '').trim() || 'Hiring Company';
+
+    // 5. Skills extraction
+    const techDict = [
+      'React', 'Next.js', 'Vue', 'Angular', 'TypeScript', 'JavaScript', 'Node.js', 'NestJS', 'Express',
+      'Python', 'Django', 'FastAPI', 'Java', 'Spring Boot', 'Go', 'Golang', 'Rust', 'C#', '.NET',
+      'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'GraphQL', 'REST API', 'Prisma', 'Docker',
+      'Kubernetes', 'AWS', 'GCP', 'Azure', 'CI/CD', 'Git', 'TailwindCSS', 'Microservices', 'Kafka'
+    ];
+    const keySkills = techDict.filter(skill => {
+      const regex = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      return regex.test(rawText);
+    }).slice(0, 8);
+
+    return {
+      company_name: companyName,
+      role_title: roleTitle,
+      work_mode: workMode,
+      location: location || (workMode === 'REMOTE' ? 'Remote' : undefined),
+      salary_min: salaryMin,
+      salary_max: salaryMax,
+      currency: currency,
+      contact_name: undefined,
+      contact_email: contactEmail,
+      key_skills: keySkills.length > 0 ? keySkills : ['TypeScript', 'Full Stack Development'],
+      job_summary: rawText.length > 500 ? rawText.slice(0, 500) + '...' : rawText,
+      extracted_with: 'Smart Heuristic Pattern Extractor',
     };
   }
 }
