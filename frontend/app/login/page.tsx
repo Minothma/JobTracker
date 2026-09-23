@@ -55,7 +55,7 @@ export default function LoginPage() {
           <div>
             {/* Top Brand Header */}
             <Link href="/" className="inline-flex items-center gap-3 group mb-8">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs font-mono font-bold">
+              <div className="w-8 h-8 rounded-lg bg-[#5E6AD2] flex items-center justify-center text-white text-xs font-mono font-bold">
                 JT
               </div>
               <div className="flex flex-col">
@@ -71,7 +71,7 @@ export default function LoginPage() {
             {/* Headline & Subtitle */}
             <div className="space-y-3 mb-8">
               <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#18181B] border border-[#27272A] text-[#A1A1AA] text-xs font-mono">
-                <Terminal className="w-3.5 h-3.5 text-indigo-400" />
+                <Terminal className="w-3.5 h-3.5 text-[#A1A1AA]" />
                 <span>v2.0 • Prosumer Edition</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-semibold text-[#FAFAFA] tracking-tight leading-snug">
@@ -88,7 +88,7 @@ export default function LoginPage() {
               <div className="p-3.5 rounded-lg bg-[#121214] border border-[#27272A] space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-[#FAFAFA] flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                    <Layers className="w-3.5 h-3.5 text-[#A1A1AA]" />
                     Kanban Pipeline
                   </span>
                   <span className="text-[10px] font-mono text-[#71717A]">5 Stages</span>
@@ -100,10 +100,10 @@ export default function LoginPage() {
               <div className="p-3.5 rounded-lg bg-[#121214] border border-[#27272A] space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-[#FAFAFA] flex items-center gap-1.5">
-                    <Cpu className="w-3.5 h-3.5 text-emerald-400" />
+                    <Cpu className="w-3.5 h-3.5 text-[#A1A1AA]" />
                     STAR Coach
                   </span>
-                  <span className="text-[10px] font-mono text-emerald-400/90">AI Powered</span>
+                  <span className="text-[10px] font-mono text-[#71717A]">AI Practice</span>
                 </div>
                 <p className="text-[11px] text-[#A1A1AA] leading-tight">Instant mock interview feedback and structured answer frameworks.</p>
               </div>
@@ -112,19 +112,19 @@ export default function LoginPage() {
               <div className="p-3.5 rounded-lg bg-[#121214] border border-[#27272A] space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-[#FAFAFA] flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <Sparkles className="w-3.5 h-3.5 text-[#A1A1AA]" />
                     ATS Matcher
                   </span>
-                  <span className="text-[10px] font-mono text-amber-400/90">Keyword Score</span>
+                  <span className="text-[10px] font-mono text-[#71717A]">Gap Analysis</span>
                 </div>
-                <p className="text-[11px] text-[#A1A1AA] leading-tight">Gap analysis and targeted resume bullet recommendations.</p>
+                <p className="text-[11px] text-[#A1A1AA] leading-tight">Keyword scoring and targeted resume bullet recommendations.</p>
               </div>
 
               {/* Feature 4 */}
               <div className="p-3.5 rounded-lg bg-[#121214] border border-[#27272A] space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-[#FAFAFA] flex items-center gap-1.5">
-                    <Briefcase className="w-3.5 h-3.5 text-sky-400" />
+                    <Briefcase className="w-3.5 h-3.5 text-[#A1A1AA]" />
                     Offer Advisor
                   </span>
                   <span className="text-[10px] font-mono text-[#71717A]">Counter Scripts</span>
@@ -179,7 +179,7 @@ export default function LoginPage() {
                     placeholder="name@example.com"
                     required
                     autoComplete="email"
-                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-[#0A0A0B] border border-[#27272A] rounded-md text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-[#0A0A0B] border border-[#27272A] rounded-md text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-[#5E6AD2] focus:ring-1 focus:ring-[#5E6AD2] transition-colors"
                   />
                 </div>
               </div>
@@ -202,7 +202,7 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     required
                     autoComplete="current-password"
-                    className="w-full pl-9 pr-9 py-2 text-xs sm:text-sm bg-[#0A0A0B] border border-[#27272A] rounded-md text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors font-mono"
+                    className="w-full pl-9 pr-9 py-2 text-xs sm:text-sm bg-[#0A0A0B] border border-[#27272A] rounded-md text-[#FAFAFA] placeholder:text-[#52525B] focus:outline-none focus:border-[#5E6AD2] focus:ring-1 focus:ring-[#5E6AD2] transition-colors font-mono"
                   />
                   <button
                     type="button"
@@ -220,7 +220,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-2.5 px-4 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full py-2.5 px-4 rounded-md bg-[#5E6AD2] hover:bg-[#6875E3] text-white text-xs sm:text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isLoading ? (
                     <>
